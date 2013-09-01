@@ -20,6 +20,7 @@ class Explosion(object):
         self.age = 0
         self.sprite = pyglet.sprite.Sprite(self.img)
         self.sprite.position = self.position
+        self.sprite.scale = self.MIN_SCALE
         self.world.spawn(self)
 
     def draw(self):

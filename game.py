@@ -84,7 +84,7 @@ CUTTER = ShipModel(
 class Player(object):
     ship_count = defaultdict(int)
     TETHER_FORCE = 0.5
-    TETHER_DAMPING = 0.5
+    TETHER_DAMPING = 0.9
 
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
@@ -154,7 +154,6 @@ class Player(object):
 
         # Apply damping to the relative velocity
         self.tethered.velocity -= self.TETHER_DAMPING * (self.tethered.velocity - self.velocity) * ts
-        self.tethered.update(ts)
 
     def update(self, ts):
         u = self.velocity
@@ -188,13 +187,15 @@ class Player(object):
                 o.on_collide(self)
                 break
 
-    def kill(self):
+    def explode(self):
         Explosion(self.world, self.position)
-        self.world.kill(self)
-        if self.tethered:
-            self.world.spawn(self.tethered)
-        self.alive = False
+        self.kill()
         self.world.dispatch_event('on_player_death')
+
+    def kill(self):
+        self.world.kill(self)
+        self.release()
+        self.alive = False
 
     def rotate_cw(self, ts):
         """Rotate clockwise."""
@@ -220,6 +221,15 @@ class Player(object):
             math.cos(rotation)
         )
         Bullet(self.world, self.position, dir, self.velocity)
+
+    def attach(self, other):
+        self.tethered = other
+        other.tethered_to = self
+
+    def release(self):
+        if self.tethered:
+            self.tethered.tethered_to = None
+            self.tethered = None
 
 
 class Bullet(object):
@@ -386,8 +396,12 @@ class Game(object):
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.Z:
-            if self.world.player.alive:
-                self.world.player.shoot()
+            player = self.world.player
+            if player.alive:
+                if player.tethered:
+                    player.release()
+                else:
+                    player.shoot()
             return EVENT_HANDLED
 
     def start(self):

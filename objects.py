@@ -3,6 +3,8 @@ import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
 
+from effects import Explosion
+
 
 class Collidable(object):
     """Objects that can be collided with.
@@ -17,7 +19,7 @@ class Collidable(object):
         return (self.position - other.position).length2 < r * r
 
     def on_collide(self, player):
-        player.kill()
+        player.explode()
 
 
 class MoonBase(Collidable):
@@ -34,7 +36,7 @@ class MoonBase(Collidable):
 
 
 class Moon(Collidable):
-    RADIUS = 135.0
+    RADIUS = 140.0
     ANGULAR_VELOCITY = 5.0  # degrees/second
 
     @classmethod
@@ -78,6 +80,7 @@ class Collectable(Collidable):
         self.velocity = velocity
         self.sprite.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * 60
+        self.tethered_to = None
         self.world.spawn(self)
 
     def draw(self):
@@ -87,15 +90,31 @@ class Collectable(Collidable):
     def update(self, ts):
         self.sprite.rotation += self.angular_velocity * ts
         self.position += self.velocity * ts
+        self.do_collisions()
+
+    def do_collisions(self):
+        for o in self.world.collidable_objects:
+            if o is not self and o.colliding(self):
+                if isinstance(o, Collectable):
+                    o.explode()
+                self.explode()
+                return
+
+    def explode(self):
+        """Explode the object."""
+        Explosion(self.world, self.position)
+        self.kill()
 
     def kill(self):
+        """Remove the object from the world."""
+        if self.tethered_to:
+            self.tethered_to.release()
         self.world.kill(self)
 
     def on_collide(self, player):
         if player.tethered:
             return
-        self.world.kill(self)
-        player.tethered = self
+        player.attach(self)
 
 
 class Cheese(Collectable):

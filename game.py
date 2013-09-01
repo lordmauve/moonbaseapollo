@@ -7,7 +7,7 @@ from wasabi.geom import v
 from wasabi.geom.poly import Rect
 from loader import load_centred
 
-from objects import Moon
+from objects import Moon, Collidable
 from labels import FadeyLabel, FONT_FILENAME, Signpost
 
 
@@ -25,7 +25,9 @@ pyglet.resource.reindex()
 pyglet.resource.add_font(FONT_FILENAME)
 
 
-class Asteroid(object):
+class Asteroid(Collidable):
+    RADIUS = 32
+
     @classmethod
     def load(cls):
         if not hasattr(cls, 'ASTEROID1'):
@@ -44,13 +46,13 @@ class Asteroid(object):
 
     def __init__(self, world, x, y, img):
         self.world = world
-        self.x = x
-        self.y = y
+        self.position = v(x, y)
         self.sprite = pyglet.sprite.Sprite(img)
         self.sprite.position = x, y
         # self.sprite.scale = scale
         self.sprite.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * 60
+        self.world.spawn(self)
 
     def draw(self):
         self.sprite.draw()
@@ -61,13 +63,14 @@ class Asteroid(object):
 
 from collections import namedtuple
 
-ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag')
+ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag radius')
 
 CUTTER = ShipModel(
     sprite=load_centred('cutter'),
     rotation=100,  # angular velocity, degrees/second
     acceleration=15,  # pixels per second per second
     drag=0.3,  # fraction of velocity lost/second. This provides a natural cap on velocity.
+    radius=5
 )
 
 
@@ -80,6 +83,9 @@ class Player(object):
         self.sprite = pyglet.sprite.Sprite(ship.sprite)
         self.sprite.position = x, y
         self.sprite.rotation = 0
+        self.alive = True
+        self.RADIUS = self.ship.radius
+        self.world.spawn(self)
 
     def draw(self):
         self.sprite.position = self.position
@@ -99,6 +105,17 @@ class Player(object):
             self.velocity *= (1.0 - self.ship.drag) ** ts
         # Constant acceleration formula
         self.position += 0.5 * (u + self.velocity) * ts
+
+        self.do_collisions()
+
+    def do_collisions(self):
+        for o in self.world.collidable_objects:
+            if o.colliding(self):
+                self.kill()
+
+    def kill(self):
+        self.world.kill(self)
+        self.alive = False
 
     def rotate_cw(self, ts):
         """Rotate clockwise."""
@@ -139,6 +156,7 @@ class World(object):
     def __init__(self, keyboard):
         self.keyboard = keyboard
         self.objects = []
+        self.collidable_objects = []
 
         self.camera = Camera()
         self.setup_projection_matrix()
@@ -170,14 +188,17 @@ class World(object):
 
     def spawn(self, o):
         self.objects.append(o)
+        if isinstance(o, Collidable):
+            self.collidable_objects.append(o)
 
     def kill(self, o):
         self.objects.remove(o)
+        if isinstance(o, Collidable):
+            self.collidable_objects.remove(o)
 
     def generate_asteroids(self):
         while len(self.objects) < 5:
-            ast = Asteroid.random(self)
-            self.objects.append(ast)
+            Asteroid.random(self)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)
             # for o in self.objects:
@@ -196,7 +217,6 @@ class World(object):
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def update(self, ts):
-        self.player.update(ts)
         for o in self.objects:
             o.update(ts)
         self.camera.track(self.player)
@@ -208,7 +228,6 @@ class World(object):
 
         for o in self.objects:
             o.draw()
-        self.player.draw()
 
         self.moonbase_signpost.draw()
 

@@ -30,14 +30,19 @@ class FadeyLabel(object):
         self.world.spawn(self)
 
     def update(self, ts):
+        if not self.follow.alive:
+            self.kill()
         self.age += ts
         if self.age >= self.FADE_END:
             # Dead
-            self.world.objects.remove(self)
+            self.kill()
         elif self.age > self.FADE_START:
             # Fading
             alpha = 1.0 - (self.age - self.FADE_START) / self.FADE_TIME
             self.label.color = self.colour + (int(255 * alpha),)
+
+    def kill(self):
+        self.world.objects.remove(self)
 
     def draw(self):
         # track the thing we are labelling

@@ -31,32 +31,34 @@ pyglet.resource.add_font(FONT_FILENAME)
 
 class Asteroid(Collidable):
     RADIUS = 32
+    EJECT_SPEED = 50
+    EJECT_RANDOMNESS = 30
 
     @classmethod
     def load(cls):
         if not hasattr(cls, 'ASTEROID1'):
             cls.ASTEROID1 = load_centred('asteroid')
             cls.ASTEROID_FRAG = load_centred('asteroid-fragment')
+            cls.SPRITES = [
+                cls.ASTEROID1,
+            ]
 
     @classmethod
     def random(cls, world):
         while True:
             x = (random.random() - 0.5) * 2000
             y = (random.random() - 0.5) * 2000
-            if x * x + y * y > 4e5:
+            pos = v(x, y)
+            if pos.length2 > 4e5:
+                # Don't put asteroids too close to the moon
                 break
-        img = random.choice((cls.ASTEROID1,))
-        return cls(world, x, y, img)
+        return cls(world, pos)
 
-    @property
-    def pos(self):
-        return v(self.x, self.y)
-
-    def __init__(self, world, x, y, img):
+    def __init__(self, world, position, velocity=v(0, 0), img=None):
         self.world = world
-        self.position = v(x, y)
-        self.sprite = pyglet.sprite.Sprite(img)
-        self.sprite.position = x, y
+        self.position = position
+        self.velocity = velocity
+        self.sprite = pyglet.sprite.Sprite(img or random.choice(self.SPRITES))
         # self.sprite.scale = scale
         self.sprite.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * 60
@@ -66,11 +68,28 @@ class Asteroid(Collidable):
         self.sprite.draw()
 
     def update(self, ts):
+        self.position += self.velocity * ts
+        self.sprite.position = self.position
         self.sprite.rotation += self.angular_velocity * ts
 
-    def fragment(self):
-        frag_pos = self.position + v(50, 0)
-        Asteroid(self.world, frag_pos.x, frag_pos.y, Asteroid.ASTEROID_FRAG)
+    def fragment(self, position):
+        # Fire outwards
+        vel = (position - self.position).normalized() * self.EJECT_SPEED
+
+        # Add a random component
+        vel += v(0, random.random() * self.EJECT_RANDOMNESS).rotated(random.random() * 360)
+
+        AsteroidFragment(self.world, position, vel)
+
+
+class AsteroidFragment(Asteroid):
+    RADIUS = 8
+
+    def __init__(self, world, x, y):
+        super(AsteroidFragment, self).__init__(world, x, y, self.ASTEROID_FRAG)
+
+    def fragment(self, position):
+        self.world.kill(self)
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
@@ -238,7 +257,7 @@ class Player(object):
 
 
 class Bullet(object):
-    RADIUS = 5
+    RADIUS = 3
     SPEED = 200
 
     @classmethod
@@ -268,7 +287,7 @@ class Bullet(object):
             if o.colliding(self):
                 self.kill()
                 if isinstance(o, Asteroid):
-                    o.fragment()
+                    o.fragment(self.position)
                 break
 
     def kill(self):

@@ -1,4 +1,5 @@
 import random
+import math
 import pyglet
 from pyglet.window import key
 from pyglet import gl
@@ -75,9 +76,9 @@ class Player(object):
 
     def update(self, ts):
         if self.world.keyboard[key.UP]:
-            print "UP"
+            self.move(forward=True)
         if self.world.keyboard[key.DOWN]:
-            print "DOWN"
+            self.move(forward=False)
         if self.world.keyboard[key.LEFT]:
             self.rotate(clockwise=False)
         if self.world.keyboard[key.RIGHT]:
@@ -86,6 +87,13 @@ class Player(object):
     def rotate(self, clockwise=True):
         direction = 1 if clockwise else -1
         self.sprite.rotation += direction * 5
+
+    def move(self, forward=True):
+        direction = 1 if forward else -1
+        speed = 25
+        rotation = math.radians(self.sprite.rotation)
+        self.sprite.x += direction * math.sin(rotation) * speed
+        self.sprite.y += direction * math.cos(rotation) * speed
 
 
 class Camera(object):

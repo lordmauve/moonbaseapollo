@@ -10,7 +10,7 @@ from wasabi.geom import v
 from wasabi.geom.poly import Rect
 
 from loader import load_centred
-from objects import Moon, Collidable, spawn_random_collectable, load_all
+from objects import Moon, Collidable, spawn_random_collectable, spawn_random_asteroid, load_all, Asteroid
 from effects import Explosion
 from labels import TrackingLabel, FONT_FILENAME, Signpost
 
@@ -27,69 +27,6 @@ pyglet.resource.path += [
 ]
 pyglet.resource.reindex()
 pyglet.resource.add_font(FONT_FILENAME)
-
-
-class Asteroid(Collidable):
-    RADIUS = 32
-    EJECT_SPEED = 50
-    EJECT_RANDOMNESS = 30
-
-    @classmethod
-    def load(cls):
-        if not hasattr(cls, 'ASTEROID1'):
-            cls.ASTEROID1 = load_centred('asteroid')
-            cls.ASTEROID_FRAG = load_centred('asteroid-fragment')
-            cls.SPRITES = [
-                cls.ASTEROID1,
-            ]
-
-    @classmethod
-    def random(cls, world):
-        while True:
-            x = (random.random() - 0.5) * 2000
-            y = (random.random() - 0.5) * 2000
-            pos = v(x, y)
-            if pos.length2 > 4e5:
-                # Don't put asteroids too close to the moon
-                break
-        return cls(world, pos)
-
-    def __init__(self, world, position, velocity=v(0, 0), img=None):
-        self.world = world
-        self.position = position
-        self.velocity = velocity
-        self.sprite = pyglet.sprite.Sprite(img or random.choice(self.SPRITES))
-        # self.sprite.scale = scale
-        self.sprite.rotation = random.random() * 360
-        self.angular_velocity = (random.random() - 0.5) * 60
-        self.world.spawn(self)
-
-    def draw(self):
-        self.sprite.draw()
-
-    def update(self, ts):
-        self.position += self.velocity * ts
-        self.sprite.position = self.position
-        self.sprite.rotation += self.angular_velocity * ts
-
-    def fragment(self, position):
-        # Fire outwards
-        vel = (position - self.position).normalized() * self.EJECT_SPEED
-
-        # Add a random component
-        vel += v(0, random.random() * self.EJECT_RANDOMNESS).rotated(random.random() * 360)
-
-        AsteroidFragment(self.world, position, vel)
-
-
-class AsteroidFragment(Asteroid):
-    RADIUS = 8
-
-    def __init__(self, world, x, y):
-        super(AsteroidFragment, self).__init__(world, x, y, self.ASTEROID_FRAG)
-
-    def fragment(self, position):
-        self.world.kill(self)
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
@@ -356,9 +293,7 @@ class World(EventDispatcher):
 
     def generate_asteroids(self):
         for i in xrange(50):
-            Asteroid.random(self)
-        for i in xrange(20):
-            spawn_random_collectable(self)
+            spawn_random_asteroid(self)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)
             # for o in self.objects:
@@ -403,7 +338,6 @@ class Game(object):
         self.keyboard = key.KeyStateHandler()
 
         # load the sprites for objects
-        Asteroid.load()
         load_all()
         Bullet.load()
 

@@ -143,6 +143,120 @@ class Metal(Collectable):
     SPRITE_NAME = 'metal-fragment'
 
 
+class Asteroid(Collidable):
+    RADIUS = 32
+    EJECT_SPEED = 50
+    EJECT_RANDOMNESS = 30
+
+    SPRITE_NAMES = [
+        'asteroid'
+    ]
+
+    @classmethod
+    def load(cls):
+        cls.SPRITES = [load_centred(name) for name in cls.SPRITE_NAMES]
+
+    @classmethod
+    def random(cls, world):
+        while True:
+            x = (random.random() - 0.5) * 2000
+            y = (random.random() - 0.5) * 2000
+            pos = v(x, y)
+            if pos.length2 > 4e5:
+                # Don't put asteroids too close to the moon
+                break
+        return cls(world, pos)
+
+    def __init__(self, world, position, velocity=v(0, 0), img=None):
+        self.world = world
+        self.position = position
+        self.velocity = velocity
+        self.sprite = pyglet.sprite.Sprite(img or random.choice(self.SPRITES))
+        # self.sprite.scale = scale
+        self.sprite.rotation = random.random() * 360
+        self.angular_velocity = (random.random() - 0.5) * 60
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.position += self.velocity * ts
+        self.sprite.position = self.position
+        self.sprite.rotation += self.angular_velocity * ts
+
+    def spawn_fragment(self, position, velocity=v(0, 0)):
+        """Spawn a fragment at the given position."""
+        AsteroidFragment(self.world, position, velocity)
+
+    def fragment(self, position):
+        """Eject a fragment given a bullet impact at position."""
+        outwards = (position - self.position).normalized()
+
+        # Place the new fragment where it cannot collide immediately
+        edge_pos = self.position + outwards * (self.RADIUS + 8)
+
+        # Fire outwards
+        vel =  outwards * self.EJECT_SPEED
+
+        # Add a random component
+        vel += v(0, random.random() * self.EJECT_RANDOMNESS).rotated(random.random() * 360)
+
+        self.spawn_fragment(edge_pos, vel)
+
+
+class AsteroidFragment(Asteroid):
+    RADIUS = 8
+
+    SPRITE_NAMES = [
+        'asteroid-fragment',
+    ]
+
+    def fragment(self, position):
+        self.world.kill(self)
+
+
+class CheeseAsteroid(Asteroid):
+    SPRITE_NAMES = [
+        'cheese',
+    ]
+
+    def spawn_fragment(self, position, velocity=v(0, 0)):
+        """Spawn a fragment at the given position."""
+        Cheese(self.world, position, velocity)
+
+
+class MetalAsteroid(Asteroid):
+    SPRITE_NAMES = [
+        'metal',
+    ]
+
+    def spawn_fragment(self, position, velocity=v(0, 0)):
+        """Spawn a fragment at the given position."""
+        Metal(self.world, position, velocity)
+
+
+class IceAsteroid(Asteroid):
+    SPRITE_NAMES = [
+        'ice',
+    ]
+
+    def spawn_fragment(self, position, velocity=v(0, 0)):
+        """Spawn a fragment at the given position."""
+        Ice(self.world, position, velocity)
+
+
+def spawn_random_asteroid(world):
+    cls = random.choice([
+        Asteroid,
+        Asteroid,
+        CheeseAsteroid,
+        IceAsteroid,
+        MetalAsteroid,
+    ])
+    cls.random(world)
+
+
 def spawn_random_collectable(world):
     cls = random.choice([
         Cheese, Ice, Metal
@@ -156,8 +270,19 @@ def spawn_random_collectable(world):
     return cls(world, v(x, y))
 
 
+CLASSES = [
+    Asteroid,
+    AsteroidFragment,
+    MetalAsteroid,
+    IceAsteroid,
+    CheeseAsteroid,
+    Moon,
+    Metal,
+    Ice,
+    Cheese,
+]
+
+
 def load_all():
-    Metal.load()
-    Ice.load()
-    Cheese.load()
-    Moon.load()
+    for c in CLASSES:
+        c.load()

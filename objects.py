@@ -1,5 +1,6 @@
 # coding: utf8
 import random
+import math
 import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
@@ -185,9 +186,21 @@ class Asteroid(Collidable):
         self.sprite.position = self.position
         self.sprite.rotation += self.angular_velocity * ts
 
+    def fragment_class(self):
+        return AsteroidFragment
+
     def spawn_fragment(self, position, velocity=v(0, 0)):
         """Spawn a fragment at the given position."""
-        AsteroidFragment(self.world, position, velocity)
+        cls = self.fragment_class()
+        cls(self.world, position, velocity)
+
+        new_radius = math.sqrt(self.RADIUS * self.RADIUS - 81)
+        frac = new_radius / self.RADIUS
+        self.sprite.scale *= frac
+        self.RADIUS *= frac
+        if self.RADIUS < 10:
+            self.world.kill(self)
+            cls(self.world, self.position)
 
     def fragment(self, position):
         """Eject a fragment given a bullet impact at position."""
@@ -221,9 +234,8 @@ class CheeseAsteroid(Asteroid):
         'cheese',
     ]
 
-    def spawn_fragment(self, position, velocity=v(0, 0)):
-        """Spawn a fragment at the given position."""
-        Cheese(self.world, position, velocity)
+    def fragment_class(self):
+        return Cheese
 
 
 class MetalAsteroid(Asteroid):
@@ -231,9 +243,8 @@ class MetalAsteroid(Asteroid):
         'metal',
     ]
 
-    def spawn_fragment(self, position, velocity=v(0, 0)):
-        """Spawn a fragment at the given position."""
-        Metal(self.world, position, velocity)
+    def fragment_class(self):
+        return Metal
 
 
 class IceAsteroid(Asteroid):
@@ -241,15 +252,12 @@ class IceAsteroid(Asteroid):
         'ice',
     ]
 
-    def spawn_fragment(self, position, velocity=v(0, 0)):
-        """Spawn a fragment at the given position."""
-        Ice(self.world, position, velocity)
+    def fragment_class(self):
+        return Ice
 
 
 def spawn_random_asteroid(world):
-    cls = random.choice([
-        Asteroid,
-        Asteroid,
+    cls = random.choice([Asteroid] * 10 + [
         CheeseAsteroid,
         IceAsteroid,
         MetalAsteroid,

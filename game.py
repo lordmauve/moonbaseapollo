@@ -1,12 +1,15 @@
 import random
 import math
+from collections import namedtuple, defaultdict
+
 import pyglet
 from pyglet.window import key
+from pyglet.event import EventDispatcher
 from pyglet import gl
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
-from loader import load_centred
 
+from loader import load_centred
 from objects import Moon, Collidable
 from labels import FadeyLabel, FONT_FILENAME, Signpost
 
@@ -64,31 +67,53 @@ class Asteroid(Collidable):
         self.sprite.rotation += self.angular_velocity * ts
 
 
-from collections import namedtuple
-
-ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag radius')
+ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius')
 
 CUTTER = ShipModel(
+    name='Cutter',
     sprite=load_centred('cutter'),
-    rotation=100,  # angular velocity, degrees/second
-    acceleration=15,  # pixels per second per second
-    drag=0.3,  # fraction of velocity lost/second. This provides a natural cap on velocity.
-    radius=5
+    rotation=100.0,  # angular velocity, degrees/second
+    acceleration=15.0,  # pixels per second per second
+    max_speed=200.0,  # maximum speed in pixels/second
+    radius=5.0
 )
 
 
 class Player(object):
+    ship_count = defaultdict(int)
+
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
-        self.velocity = v(0, 30)
+        self.velocity = v(0.0, 30.0)
         self.position = v(x, y)
         self.ship = ship
         self.sprite = pyglet.sprite.Sprite(ship.sprite)
         self.sprite.position = x, y
-        self.sprite.rotation = 0
+        self.sprite.rotation = 0.0
         self.alive = True
         self.RADIUS = self.ship.radius
         self.world.spawn(self)
+
+        self.pick_name()
+
+        FadeyLabel(
+            self.world,
+            self.name,
+            follow=self,
+            colour=(0, 128, 0)
+        )
+
+    def pick_name(self):
+        """Pick a name for this ship.
+
+        Each new incarnation of the ship has a different ID.
+
+        """
+        self.ship_count[self.ship.name] += 1
+        self.name = '%s %d' % (
+            self.ship.name,
+            self.ship_count[self.ship.name]
+        )
 
     def draw(self):
         self.sprite.position = self.position
@@ -104,8 +129,9 @@ class Player(object):
         if self.world.keyboard[key.RIGHT]:
             self.rotate_cw(ts)
 
-        if ts:
-            self.velocity *= (1.0 - self.ship.drag) ** ts
+        speed = self.velocity.length
+        if speed > self.ship.max_speed:
+            self.velocity *= self.ship.max_speed / speed
         # Constant acceleration formula
         self.position += 0.5 * (u + self.velocity) * ts
 
@@ -119,6 +145,7 @@ class Player(object):
     def kill(self):
         self.world.kill(self)
         self.alive = False
+        self.world.dispatch_event('on_player_death')
 
     def rotate_cw(self, ts):
         """Rotate clockwise."""
@@ -155,7 +182,7 @@ class Camera(object):
         return Rect.from_cwh(self.position, WIDTH, HEIGHT)
 
 
-class World(object):
+class World(EventDispatcher):
     def __init__(self, keyboard):
         self.keyboard = keyboard
         self.objects = []
@@ -165,17 +192,14 @@ class World(object):
         self.setup_projection_matrix()
         self.setup_world()
 
+    def spawn_player(self):
+        self.player = Player(self, 0, 180)
+        self.camera.track(self.player)
+
     def setup_world(self):
         """Create the initial world."""
         self.generate_asteroids()
         moon = Moon(self)
-        self.player = Player(self, 0, 180)
-        FadeyLabel(
-            self,
-            'Cutter 1',
-            follow=self.player,
-            colour=(0, 128, 0)
-        )
         FadeyLabel(
             self,
             'Moonbase Alpha',
@@ -188,6 +212,7 @@ class World(object):
             'Moonbase Alpha',
             moon.moonbase
         )
+        self.spawn_player()
 
     def spawn(self, o):
         self.objects.append(o)
@@ -234,6 +259,8 @@ class World(object):
 
         self.moonbase_signpost.draw()
 
+World.register_event_type('on_player_death')
+
 
 class Game(object):
     def __init__(self):
@@ -248,7 +275,16 @@ class Game(object):
 
         # initialise the World and start the game
         self.world = World(self.keyboard)
+        self.world.set_handler('on_player_death', self.on_player_death)
         self.start()
+
+    def on_player_death(self):
+        # Wait a couple of seconds then respawn the player
+        pyglet.clock.schedule_once(
+            lambda dt, world: world.spawn_player(),
+            2,
+            self.world
+        )
 
     def start(self):
         self.window.push_handlers(self.keyboard, on_draw=self.on_draw)

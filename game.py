@@ -8,6 +8,8 @@ from loader import load_centred
 
 from objects import Moonbase
 
+FONT_NAME = 'Gunship Condensed'
+FONT_FILENAME = 'gun4fc.ttf'
 WIDTH = 1024
 HEIGHT = 600
 
@@ -19,6 +21,7 @@ pyglet.resource.path += [
     'fonts/',
 ]
 pyglet.resource.reindex()
+pyglet.resource.add_font(FONT_FILENAME)
 
 
 class Asteroid(object):
@@ -96,6 +99,46 @@ class Player(object):
         self.sprite.y += direction * math.cos(rotation) * speed
 
 
+class FadeyLabel(object):
+
+    FADE_START = 8.0   # seconds
+    FADE_END = 10.0  # seconds
+
+    FADE_TIME = FADE_END - FADE_START
+
+    def __init__(
+            self, world, text, follow,
+            offset=v(10, -20),
+            colour=(255, 255, 255)):
+        self.world = world
+        self.follow = follow
+        self.colour = colour
+        self.offset = offset
+        self.label = pyglet.text.Label(
+            text,
+            font_name=FONT_NAME,
+            color=colour + (255,)
+        )
+        self.age = 0
+
+    def update(self, ts):
+        self.age += ts
+        if self.age >= self.FADE_END:
+            # Dead
+            self.world.objects.remove(self)
+        elif self.age > self.FADE_START:
+            # Fading
+            alpha = 1.0 - (self.age - self.FADE_START) / self.FADE_TIME
+            self.label.color = self.colour + (int(255 * alpha),)
+
+    def draw(self):
+        # track the thing we are labelling
+        self.label.x, self.label.y = v(self.follow.position) + self.offset
+
+        # Draw label
+        self.label.draw()
+
+
 class Camera(object):
     def __init__(self, pos=v(0, 0)):
         self.pos = pos
@@ -121,6 +164,12 @@ class World(object):
         self.generate_asteroids()
         self.objects.append(Moonbase(self))
         self.player = Player(self, 0, 200)
+        self.objects.append(FadeyLabel(
+            self,
+            'Cutter 1',
+            follow=self.player.sprite,
+            colour=(0, 128, 0)
+        ))
 
     def generate_asteroids(self):
         while len(self.objects) < 5:

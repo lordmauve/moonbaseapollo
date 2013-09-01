@@ -1,4 +1,3 @@
-import random
 import math
 from collections import namedtuple, defaultdict
 
@@ -13,6 +12,7 @@ from loader import load_centred
 from objects import Moon, Collidable, spawn_random_collectable, spawn_random_asteroid, load_all, Asteroid
 from effects import Explosion
 from labels import TrackingLabel, FONT_FILENAME, Signpost
+from hud import HUD
 
 
 WIDTH = 1024
@@ -49,7 +49,7 @@ class Player(object):
 
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
-        self.velocity = v(0.0, 30.0)
+        self.velocity = v(0.0, 5.0)
         self.position = v(x, y)
         self.ship = ship
         self.sprite = pyglet.sprite.Sprite(ship.sprite)
@@ -256,6 +256,8 @@ class World(EventDispatcher):
         self.collidable_objects = []
 
         self.camera = Camera()
+        self.hud = HUD(WIDTH, HEIGHT)
+
         self.setup_projection_matrix()
         self.setup_world()
 
@@ -325,6 +327,7 @@ class World(EventDispatcher):
             o.draw()
 
         self.moonbase_signpost.draw()
+        self.hud.draw()
 
 World.register_event_type('on_player_death')
 
@@ -348,11 +351,11 @@ class Game(object):
 
     def on_player_death(self):
         # Wait a couple of seconds then respawn the player
-        pyglet.clock.schedule_once(
-            lambda dt, world: world.spawn_player(),
-            2,
-            self.world
-        )
+        pyglet.clock.schedule_once(self.respawn, 2)
+
+    def respawn(self, *args):
+        self.say("{control}: Please treat this one more carefully!")
+        self.world.spawn_player()
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.Z:
@@ -364,10 +367,29 @@ class Game(object):
                     player.shoot()
             return EVENT_HANDLED
 
+    def say(self, message):
+        msg = message.format(
+            name=self.world.player.name,
+            control='Moonbase Alpha'
+        )
+        self.world.hud.set_message(msg)
+
     def start(self):
         self.window.push_handlers(self.keyboard, on_draw=self.on_draw)
         self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
+
+        self.say("{control}: Stand by {name}, we're going to run some diagnostics.")
+        pyglet.clock.schedule_once(
+            lambda dt, game: game.say("{control}: {name}, your system readouts are green. You are go for mission."),
+            6,
+            self
+        )
+        pyglet.clock.schedule_once(
+            lambda dt, hud: hud.clear_messages(),
+            10,
+            self.world.hud
+        )
         pyglet.app.run()
 
     def on_draw(self):

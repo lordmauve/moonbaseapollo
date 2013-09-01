@@ -58,49 +58,71 @@ class Asteroid(object):
         self.sprite.rotation += self.angular_velocity * ts
 
 
-class Player(object):
-    @classmethod
-    def load(cls):
-        if hasattr(cls, 'CUTTER'):
-            return
-        cls.CUTTER = load_centred('cutter')
+from collections import namedtuple
 
-    def __init__(self, world, x, y, ship_type='CUTTER'):
+ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag braking')
+
+CUTTER = ShipModel(
+    sprite=load_centred('cutter'),
+    rotation=100,  # angular velocity, degrees/second
+    acceleration=15,  # pixels per second per second
+    drag=0.3,  # fraction of velocity lost/second. This provides a natural cap on velocity.
+    braking=0.9,  # fraction of velocity lost/second when braking
+)
+
+
+class Player(object):
+    def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
-        self.x = x
-        self.y = y
-        self.sprite = pyglet.sprite.Sprite(getattr(Player, ship_type))
+        self.velocity = v(0, 0)
+        self.position = v(x, y)
+        self.ship = ship
+        self.sprite = pyglet.sprite.Sprite(ship.sprite)
         self.sprite.position = x, y
-        # self.sprite.scale = scale
-        self.sprite.rotation = random.random() * 360
+        self.sprite.rotation = 0
 
     def draw(self):
+        self.sprite.position = self.position
         self.sprite.draw()
 
     def update(self, ts):
+        u = self.velocity
+
         if self.world.keyboard[key.UP]:
-            self.move(forward=True)
-        if self.world.keyboard[key.DOWN]:
-            self.move(forward=False)
+            self.thrust(ts)
         if self.world.keyboard[key.LEFT]:
-            self.rotate(clockwise=False)
+            self.rotate_acw(ts)
         if self.world.keyboard[key.RIGHT]:
-            self.rotate(clockwise=True)
+            self.rotate_cw(ts)
 
-    def rotate(self, clockwise=True):
-        direction = 1 if clockwise else -1
-        self.sprite.rotation += direction * 5
+        if ts:
+            if self.world.keyboard[key.DOWN]:
+                drag = self.ship.braking
+            else:
+                drag = self.ship.drag
+            self.velocity *= (1.0 - drag) ** ts
+        # Constant acceleration formula
+        self.position += 0.5 * (u + self.velocity) * ts
 
-    def move(self, forward=True):
-        direction = 1 if forward else -1
-        speed = 25
+    def rotate_cw(self, ts):
+        """Rotate clockwise."""
+        self.sprite.rotation += self.ship.rotation * ts
+
+    def rotate_acw(self, ts):
+        """Rotate anticlockwise."""
+        self.sprite.rotation -= self.ship.rotation * ts
+
+    def thrust(self, ts):
         rotation = math.radians(self.sprite.rotation)
-        self.sprite.x += direction * math.sin(rotation) * speed
-        self.sprite.y += direction * math.cos(rotation) * speed
+        accel = self.ship.acceleration
+        a = v(
+            math.sin(rotation) * accel,
+            math.cos(rotation) * accel
+        )
+        self.velocity += a
 
 
 class FadeyLabel(object):
-
     FADE_START = 8.0   # seconds
     FADE_END = 10.0  # seconds
 
@@ -167,7 +189,7 @@ class World(object):
         self.objects.append(FadeyLabel(
             self,
             'Cutter 1',
-            follow=self.player.sprite,
+            follow=self.player,
             colour=(0, 128, 0)
         ))
 
@@ -218,7 +240,6 @@ class Game(object):
 
         # load the sprites for objects
         Asteroid.load()
-        Player.load()
 
         # initialise the World and start the game
         self.world = World(self.keyboard)

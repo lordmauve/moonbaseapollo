@@ -4,13 +4,13 @@ from collections import namedtuple, defaultdict
 
 import pyglet
 from pyglet.window import key
-from pyglet.event import EventDispatcher
+from pyglet.event import EventDispatcher, EVENT_HANDLED
 from pyglet import gl
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
 
 from loader import load_centred
-from objects import Moon, Collidable
+from objects import Moon, Collidable, spawn_random_collectable, load_all
 from effects import Explosion
 from labels import FadeyLabel, FONT_FILENAME, Signpost
 
@@ -68,7 +68,7 @@ class Asteroid(Collidable):
         self.sprite.rotation += self.angular_velocity * ts
 
 
-ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius')
+ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
 
 CUTTER = ShipModel(
     name='Cutter',
@@ -76,12 +76,15 @@ CUTTER = ShipModel(
     rotation=100.0,  # angular velocity, degrees/second
     acceleration=15.0,  # pixels per second per second
     max_speed=200.0,  # maximum speed in pixels/second
-    radius=5.0
+    radius=5.0,
+    mass=1
 )
 
 
 class Player(object):
     ship_count = defaultdict(int)
+    TETHER_FORCE = 0.5
+    TETHER_DAMPING = 0.5
 
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
@@ -93,7 +96,9 @@ class Player(object):
         self.sprite.rotation = 0.0
         self.alive = True
         self.RADIUS = self.ship.radius
+        self.MASS = self.ship.mass
         self.world.spawn(self)
+        self.tethered = None
 
         self.pick_name()
 
@@ -118,7 +123,38 @@ class Player(object):
 
     def draw(self):
         self.sprite.position = self.position
-        self.sprite.draw()
+        if self.tethered:
+            self.draw_tractor_beam()
+            self.tethered.draw()
+            self.sprite.draw()
+        else:
+            self.sprite.draw()
+
+    def draw_tractor_beam(self):
+        p1 = self.position
+        p2 = self.tethered.position
+        along = (p2 - p1)
+        across = along.rotated(90).normalised() * self.tethered.RADIUS
+        gl.glEnable(gl.GL_BLEND)
+        gl.glBegin(gl.GL_TRIANGLES)
+        gl.glColor4f(0, 128, 0, 0.4)
+        gl.glVertex2f(*p1)
+        gl.glColor4f(0, 128, 0, 0)
+        gl.glVertex2f(*(p2 + across))
+        gl.glVertex2f(*(p2 - across))
+        gl.glEnd()
+
+    def update_tethered(self, ts):
+        along = self.position - self.tethered.position
+        if along.length2 > 900:
+            # Force is proportional to length of along
+            impulse = along * self.TETHER_FORCE * ts
+            self.tethered.velocity += impulse / self.tethered.MASS
+            self.velocity -= impulse / self.MASS
+
+        # Apply damping to the relative velocity
+        self.tethered.velocity -= self.TETHER_DAMPING * (self.tethered.velocity - self.velocity) * ts
+        self.tethered.update(ts)
 
     def update(self, ts):
         u = self.velocity
@@ -133,9 +169,14 @@ class Player(object):
         if self.world.keyboard[key.RIGHT]:
             self.rotate_cw(ts)
 
+        if self.tethered:
+            self.update_tethered(ts)
+
+        # Cap speed
         speed = self.velocity.length
         if speed > self.ship.max_speed:
             self.velocity *= self.ship.max_speed / speed
+
         # Constant acceleration formula
         self.position += 0.5 * (u + self.velocity) * ts
 
@@ -144,11 +185,14 @@ class Player(object):
     def do_collisions(self):
         for o in self.world.collidable_objects:
             if o.colliding(self):
-                self.kill()
+                o.on_collide(self)
+                break
 
     def kill(self):
         Explosion(self.world, self.position)
         self.world.kill(self)
+        if self.tethered:
+            self.world.spawn(self.tethered)
         self.alive = False
         self.world.dispatch_event('on_player_death')
 
@@ -175,23 +219,25 @@ class Player(object):
             math.sin(rotation),
             math.cos(rotation)
         )
-        self.world.shoot(self.position, dir)
+        Bullet(self.world, self.position, dir, self.velocity)
 
 
 class Bullet(object):
     RADIUS = 5
+    SPEED = 200
 
     @classmethod
     def load(cls):
         if not hasattr(cls, 'BULLET'):
             cls.BULLET = load_centred('bullet')
 
-    def __init__(self, world, pos, dir):
+    def __init__(self, world, pos, dir, initial_velocity=v(0, 0)):
         self.world = world
         self.position = pos
-        self.direction = dir
+        self.velocity = (dir * self.SPEED + initial_velocity)
         self.sprite = pyglet.sprite.Sprite(Bullet.BULLET)
         self.sprite.position = pos.x, pos.y
+        self.sprite.rotation = 90 - dir.angle
         self.world.spawn(self)
 
     def draw(self):
@@ -199,13 +245,14 @@ class Bullet(object):
         self.sprite.draw()
 
     def update(self, ts):
-        self.position += 50 * self.direction
+        self.position += self.velocity * ts
         self.do_collisions()
 
     def do_collisions(self):
         for o in self.world.collidable_objects:
             if o.colliding(self):
                 self.kill()
+                break
 
     def kill(self):
         Explosion(self.world, self.position)
@@ -274,6 +321,8 @@ class World(EventDispatcher):
     def generate_asteroids(self):
         for i in xrange(50):
             Asteroid.random(self)
+        for i in xrange(20):
+            spawn_random_collectable(self)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)
             # for o in self.objects:
@@ -306,9 +355,6 @@ class World(EventDispatcher):
 
         self.moonbase_signpost.draw()
 
-    def shoot(self, pos, dir):
-        Bullet(self, pos, dir)
-
 World.register_event_type('on_player_death')
 
 
@@ -322,6 +368,7 @@ class Game(object):
 
         # load the sprites for objects
         Asteroid.load()
+        load_all()
         Bullet.load()
 
         # initialise the World and start the game
@@ -337,8 +384,15 @@ class Game(object):
             self.world
         )
 
+    def on_key_press(self, symbol, modifiers):
+        if symbol == key.Z:
+            if self.world.player.alive:
+                self.world.player.shoot()
+            return EVENT_HANDLED
+
     def start(self):
         self.window.push_handlers(self.keyboard, on_draw=self.on_draw)
+        self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
         pyglet.app.run()
 

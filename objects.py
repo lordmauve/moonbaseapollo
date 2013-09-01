@@ -1,3 +1,4 @@
+import random
 import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
@@ -14,6 +15,9 @@ class Collidable(object):
     def colliding(self, other):
         r = self.RADIUS + other.RADIUS
         return (self.position - other.position).length2 < r * r
+
+    def on_collide(self, player):
+        player.kill()
 
 
 class MoonBase(Collidable):
@@ -56,3 +60,71 @@ class Moon(Collidable):
     def update(self, ts):
         self.rotation += self.ANGULAR_VELOCITY * ts
 
+
+class Collectable(Collidable):
+    RADIUS = 9.0
+    SPRITE_NAME = None  # Subclasses should set this
+    MASS = 0.5
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'img'):
+            cls.img = load_centred(cls.SPRITE_NAME)
+
+    def __init__(self, world, position, velocity=v(0, 0)):
+        self.world = world
+        self.position = position
+        self.sprite = pyglet.sprite.Sprite(self.img)
+        self.velocity = velocity
+        self.sprite.rotation = random.random() * 360
+        self.angular_velocity = (random.random() - 0.5) * 60
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.position = self.position
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.sprite.rotation += self.angular_velocity * ts
+        self.position += self.velocity * ts
+
+    def kill(self):
+        self.world.kill(self)
+
+    def on_collide(self, player):
+        if player.tethered:
+            return
+        self.world.kill(self)
+        player.tethered = self
+
+
+class Cheese(Collectable):
+    SPRITE_NAME = 'cheese-fragment'
+
+
+class Ice(Collectable):
+    SPRITE_NAME = 'ice-fragment'
+
+
+class Metal(Collectable):
+    SPRITE_NAME = 'metal-fragment'
+
+
+def spawn_random_collectable(world):
+    cls = random.choice([
+        Cheese, Ice, Metal
+    ])
+
+    while True:
+        x = (random.random() - 0.5) * 2000
+        y = (random.random() - 0.5) * 2000
+        if x * x + y * y > 4e5:
+            break
+    return cls(world, v(x, y))
+
+
+def load_all():
+    Metal.load()
+    Ice.load()
+    Cheese.load()
+    Moon.load()

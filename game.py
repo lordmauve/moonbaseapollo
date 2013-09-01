@@ -80,7 +80,7 @@ CUTTER = ShipModel(
 class Player(object):
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
-        self.velocity = v(0, 0)
+        self.velocity = v(0, 30)
         self.position = v(x, y)
         self.ship = ship
         self.sprite = pyglet.sprite.Sprite(ship.sprite)
@@ -169,7 +169,7 @@ class World(object):
         """Create the initial world."""
         self.generate_asteroids()
         moon = Moon(self)
-        self.player = Player(self, 0, 200)
+        self.player = Player(self, 0, 180)
         FadeyLabel(
             self,
             'Cutter 1',

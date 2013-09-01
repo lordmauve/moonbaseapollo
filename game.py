@@ -11,6 +11,7 @@ from wasabi.geom.poly import Rect
 
 from loader import load_centred
 from objects import Moon, Collidable
+from effects import Explosion
 from labels import FadeyLabel, FONT_FILENAME, Signpost
 
 
@@ -143,6 +144,7 @@ class Player(object):
                 self.kill()
 
     def kill(self):
+        Explosion(self.world, self.position)
         self.world.kill(self)
         self.alive = False
         self.world.dispatch_event('on_player_death')

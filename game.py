@@ -36,6 +36,7 @@ class Asteroid(Collidable):
     def load(cls):
         if not hasattr(cls, 'ASTEROID1'):
             cls.ASTEROID1 = load_centred('asteroid')
+            cls.ASTEROID_FRAG = load_centred('asteroid-fragment')
 
     @classmethod
     def random(cls, world):
@@ -66,6 +67,10 @@ class Asteroid(Collidable):
 
     def update(self, ts):
         self.sprite.rotation += self.angular_velocity * ts
+
+    def fragment(self):
+        frag_pos = self.position + v(50, 0)
+        Asteroid(self.world, frag_pos.x, frag_pos.y, Asteroid.ASTEROID_FRAG)
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
@@ -262,6 +267,8 @@ class Bullet(object):
         for o in self.world.collidable_objects:
             if o.colliding(self):
                 self.kill()
+                if isinstance(o, Asteroid):
+                    o.fragment()
                 break
 
     def kill(self):

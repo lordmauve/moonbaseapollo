@@ -35,8 +35,11 @@ class Asteroid(Collidable):
 
     @classmethod
     def random(cls, world):
-        x = random.random() * (WIDTH - 100) + 50
-        y = random.random() * (HEIGHT - 100) + 50
+        while True:
+            x = (random.random() - 0.5) * 2000
+            y = (random.random() - 0.5) * 2000
+            if x * x + y * y > 4e5:
+                break
         img = random.choice((cls.ASTEROID1,))
         return cls(world, x, y, img)
 
@@ -197,7 +200,7 @@ class World(object):
             self.collidable_objects.remove(o)
 
     def generate_asteroids(self):
-        while len(self.objects) < 5:
+        for i in xrange(50):
             Asteroid.random(self)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)

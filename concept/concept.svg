@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="318.26468"
+   height="210.08093"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="concept.svg">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#000000"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="1"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="143.9203"
+     inkscape:cy="47.931604"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     showguides="true"
+     inkscape:guide-bbox="true"
+     inkscape:window-width="1680"
+     inkscape:window-height="1026"
+     inkscape:window-x="1366"
+     inkscape:window-y="24"
+     inkscape:window-maximized="1"
+     fit-margin-top="40"
+     fit-margin-left="40"
+     fit-margin-right="40"
+     fit-margin-bottom="40" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-100.96875,-172.78125)">
+    <path
+       style="fill:#008000;stroke:#8dd35f;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 195.71429,342.36218 0,-19.28571 13.57143,13.57143 -7.85715,0 z"
+       id="path2995"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="color:#000000;fill:none;stroke:#aa4400;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="path2997"
+       sodipodi:cx="184.28572"
+       sodipodi:cy="276.64789"
+       sodipodi:rx="11.428572"
+       sodipodi:ry="11.428572"
+       d="m 195.71429,276.64789 c 0,6.31182 -5.11674,11.42857 -11.42857,11.42857 -6.31183,0 -11.42857,-5.11675 -11.42857,-11.42857 0,-6.31183 5.11674,-11.42857 11.42857,-11.42857 6.31183,0 11.42857,5.11674 11.42857,11.42857 z"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       sodipodi:type="arc"
+       style="color:#000000;fill:#999999;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="path3006"
+       sodipodi:cx="209.28572"
+       sodipodi:cy="291.64789"
+       sodipodi:rx="5"
+       sodipodi:ry="5"
+       d="m 214.28572,291.64789 c 0,2.76142 -2.23858,5 -5,5 -2.76142,0 -5,-2.23858 -5,-5 0,-2.76143 2.23858,-5 5,-5 2.76142,0 5,2.23857 5,5 z"
+       transform="translate(4.7729708,3.8890873)"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <g
+       id="g3014"
+       transform="matrix(0.34228735,0.93959532,-0.93959532,0.34228735,407.98837,9.1012312)"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         transform="translate(0,-5.3571429)"
+         d="m 192.5,311.11218 c 0,0.8876 -0.71955,1.60715 -1.60715,1.60715 -0.8876,0 -1.60714,-0.71955 -1.60714,-1.60715 0,-0.8876 0.71954,-1.60714 1.60714,-1.60714 0.8876,0 1.60715,0.71954 1.60715,1.60714 z"
+         sodipodi:ry="1.6071428"
+         sodipodi:rx="1.6071428"
+         sodipodi:cy="311.11218"
+         sodipodi:cx="190.89285"
+         id="path3008"
+         style="color:#000000;fill:#ff0000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         sodipodi:type="arc" />
+      <path
+         inkscape:connector-curvature="0"
+         id="path3012"
+         d="m 190.80357,307.18361 0,-2.94643 18.66072,1.33929 z"
+         style="opacity:0.25;fill:#ff0000;stroke:none" />
+    </g>
+    <path
+       style="opacity:0.25;fill:#999999;stroke:none"
+       d="m 210.18749,298.76313 -19.44544,-19.44544 25.8094,12.1976 z"
+       id="path3018"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path3020"
+       d="m 362.7836,277.37386 15.94982,-10.84167 -3.59463,18.85328 -4.41698,-6.49809 z"
+       style="fill:#008000;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       inkscape:transform-center-y="-14.142136"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="color:#000000;fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:#b3b3b3;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       d="m 308.8125,213.78125 c -12.62365,0 -22.84375,10.39785 -22.84375,23.21875 0,7.69304 3.66917,14.49471 9.34375,18.71875 -0.50603,1.21508 -0.78125,2.53521 -0.78125,3.9375 0,5.12778 3.73204,9.3725 8.59375,10.0625 -0.0139,0.21934 -0.0312,0.43333 -0.0312,0.65625 0,5.60914 4.47715,10.15625 10,10.15625 3.88079,0 7.21741,-2.25007 8.875,-5.53125 8.92782,-0.17057 16.125,-7.54815 16.125,-16.65625 0,-2.64637 -0.6078,-5.15203 -1.6875,-7.375 1.95827,-2.747 3.125,-6.13059 3.125,-9.78125 0,-7.22893 -4.54363,-13.37007 -10.875,-15.6875 -3.93777,-6.99438 -11.34243,-11.71875 -19.84375,-11.71875 z"
+       id="path3026"
+       inkscape:connector-curvature="0" />
+    <path
+       transform="translate(146.44054,3.8890873)"
+       d="m 214.28572,291.64789 c 0,2.76142 -2.23858,5 -5,5 -2.76142,0 -5,-2.23858 -5,-5 0,-2.76143 2.23858,-5 5,-5 2.76142,0 5,2.23857 5,5 z"
+       sodipodi:ry="5"
+       sodipodi:rx="5"
+       sodipodi:cy="291.64789"
+       sodipodi:cx="209.28572"
+       id="path3036"
+       style="color:#000000;fill:#999999;stroke:none;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       sodipodi:type="arc"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       style="opacity:0.25;fill:#00ff00;stroke:none"
+       d="m 352.75,291.23718 18.125,-13.375 -11.25,20.5 z"
+       id="path3048"
+       inkscape:connector-curvature="0"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
+    <path
+       id="path3075"
+       d="m 164.8125,213.78125 c -12.62365,0 -22.84375,10.39785 -22.84375,23.21875 0,7.69304 3.66917,14.49471 9.34375,18.71875 -0.50603,1.21508 -0.78125,2.53521 -0.78125,3.9375 0,5.12778 3.73204,9.3725 8.59375,10.0625 -0.0139,0.21934 -0.0312,0.43333 -0.0312,0.65625 0,5.60914 4.47715,10.15625 10,10.15625 3.88079,0 7.21741,-2.25007 8.875,-5.53125 8.92782,-0.17057 16.125,-7.54815 16.125,-16.65625 0,-2.64637 -0.6078,-5.15203 -1.6875,-7.375 1.95827,-2.747 3.125,-6.13059 3.125,-9.78125 0,-7.22893 -4.54363,-13.37007 -10.875,-15.6875 -3.93777,-6.99438 -11.34243,-11.71875 -19.84375,-11.71875 z"
+       style="color:#000000;fill:#808080;fill-opacity:1;fill-rule:evenodd;stroke:#b3b3b3;stroke-width:2;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       inkscape:connector-curvature="0" />
+  </g>
+</svg>

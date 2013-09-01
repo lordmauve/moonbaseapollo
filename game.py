@@ -162,14 +162,17 @@ class FadeyLabel(object):
 
 
 class Camera(object):
-    def __init__(self, pos=v(0, 0)):
-        self.pos = pos
+    def __init__(self, position=v(0, 0)):
+        self.position = position
         self.offset = v(WIDTH * -0.5, HEIGHT * -0.5)
 
     def set_matrix(self):
-        x, y = self.pos + self.offset
+        x, y = self.position + self.offset
         gl.glLoadIdentity()
         gl.glTranslatef(-x, -y, 0)
+
+    def track(self, o):
+        self.position = o.position
 
 
 class World(object):
@@ -216,9 +219,9 @@ class World(object):
 
     def update(self, ts):
         self.player.update(ts)
-        self.camera.pos = self.player.sprite.position
         for o in self.objects:
             o.update(ts)
+        self.camera.track(self.player)
 
     def draw(self):
         # draw a black background

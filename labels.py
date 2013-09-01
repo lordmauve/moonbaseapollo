@@ -14,11 +14,10 @@ class FadeyLabel(object):
     FADE_TIME = FADE_END - FADE_START
 
     def __init__(
-            self, world, text, follow,
+            self, world, text, position=v(0, 0),
             offset=v(10, -20),
             colour=(255, 255, 255)):
         self.world = world
-        self.follow = follow
         self.colour = colour
         self.offset = offset
         self.label = pyglet.text.Label(
@@ -26,12 +25,11 @@ class FadeyLabel(object):
             font_name=FONT_NAME,
             color=colour + (255,)
         )
+        self.label.x, self.label.y = position
         self.age = 0
         self.world.spawn(self)
 
     def update(self, ts):
-        if not self.follow.alive:
-            self.kill()
         self.age += ts
         if self.age >= self.FADE_END:
             # Dead
@@ -45,11 +43,44 @@ class FadeyLabel(object):
         self.world.objects.remove(self)
 
     def draw(self):
-        # track the thing we are labelling
-        self.label.x, self.label.y = v(self.follow.position) + self.offset
-
         # Draw label
         self.label.draw()
+
+
+class TrackingLabel(FadeyLabel):
+    def __init__(
+            self, world, text, follow,
+            offset=v(10, -20),
+            colour=(255, 255, 255)):
+        super(TrackingLabel, self).__init__(
+            world, text, offset=offset, colour=colour
+        )
+        self.follow = follow
+
+    def update(self, ts):
+        if not self.follow.alive:
+            self.kill()
+        else:
+            super(TrackingLabel, self).update(ts)
+
+    def draw(self):
+        # track the thing we are labelling
+        self.label.x, self.label.y = v(self.follow.position) + self.offset
+        super(TrackingLabel, self).draw()
+
+
+class FloatyLabel(FadeyLabel):
+    FADE_START = 1.0   # seconds
+    FADE_END = 2.0  # seconds
+    VELOCITY = 20
+
+    def __init__(self, *args, **kwargs):
+        super(FloatyLabel, self).__init__(*args, **kwargs)
+        self.label.anchor_x = 'center'
+
+    def update(self, ts):
+        self.label.y += self.VELOCITY * ts
+        super(FloatyLabel, self).update(ts)
 
 
 class Signpost(object):

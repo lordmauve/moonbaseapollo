@@ -12,7 +12,7 @@ from wasabi.geom.poly import Rect
 from loader import load_centred
 from objects import Moon, Collidable, spawn_random_collectable, load_all
 from effects import Explosion
-from labels import FadeyLabel, FONT_FILENAME, Signpost
+from labels import TrackingLabel, FONT_FILENAME, Signpost
 
 
 WIDTH = 1024
@@ -102,7 +102,7 @@ class Player(object):
 
         self.pick_name()
 
-        FadeyLabel(
+        TrackingLabel(
             self.world,
             self.name,
             follow=self,
@@ -304,7 +304,7 @@ class World(EventDispatcher):
         """Create the initial world."""
         self.generate_asteroids()
         moon = Moon(self)
-        FadeyLabel(
+        TrackingLabel(
             self,
             'Moonbase Alpha',
             follow=moon.moonbase,

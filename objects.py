@@ -1,9 +1,11 @@
+# coding: utf8
 import random
 import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
 
 from effects import Explosion
+from labels import FloatyLabel
 
 
 class Collidable(object):
@@ -24,7 +26,7 @@ class Collidable(object):
 
 class MoonBase(Collidable):
     alive = True
-    RADIUS = 33.0
+    RADIUS = 50.0
     OFFSET = v(0, 130.0)
 
     def __init__(self, moon):
@@ -33,6 +35,17 @@ class MoonBase(Collidable):
     @property
     def position(self):
         return self.moon.position + self.OFFSET.rotated(-self.moon.rotation)
+
+    def do_collisions(self, world):
+        for o in world.collidable_objects:
+            if o.colliding(self):
+                if isinstance(o, Collectable):
+                    o.kill()
+                    FloatyLabel(
+                        world, u'+10€',
+                        position=o.position,
+                        colour=(212, 170, 0)
+                    )
 
 
 class Moon(Collidable):
@@ -61,6 +74,7 @@ class Moon(Collidable):
 
     def update(self, ts):
         self.rotation += self.ANGULAR_VELOCITY * ts
+        self.moonbase.do_collisions(self.world)
 
 
 class Collectable(Collidable):

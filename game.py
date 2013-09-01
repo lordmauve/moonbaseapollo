@@ -53,12 +53,13 @@ class Asteroid(object):
         self.sprite.position = x, y
         # self.sprite.scale = scale
         self.sprite.rotation = random.random() * 360
+        self.angular_velocity = (random.random() - 0.5) * 60
 
     def draw(self):
         self.sprite.draw()
 
     def update(self, ts):
-        pass
+        self.sprite.rotation += self.angular_velocity * ts
 
 
 class Player(object):
@@ -66,7 +67,7 @@ class Player(object):
     def load(cls):
         if hasattr(cls, 'CUTTER'):
             return
-        cls.CUTTER = load_centred('CUTTER')
+        cls.CUTTER = load_centred('cutter')
 
     def __init__(self, world, x, y, ship_type='CUTTER'):
         self.world = world

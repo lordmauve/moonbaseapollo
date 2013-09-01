@@ -123,6 +123,9 @@ class Player(object):
     def update(self, ts):
         u = self.velocity
 
+        if self.world.keyboard[key.Z]:
+            self.shoot()
+
         if self.world.keyboard[key.UP]:
             self.thrust(ts)
         if self.world.keyboard[key.LEFT]:
@@ -165,6 +168,48 @@ class Player(object):
             math.cos(rotation) * accel
         )
         self.velocity += a
+
+    def shoot(self):
+        rotation = math.radians(self.sprite.rotation)
+        dir = v(
+            math.sin(rotation),
+            math.cos(rotation)
+        )
+        self.world.shoot(self.position, dir)
+
+
+class Bullet(object):
+    RADIUS = 5
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'BULLET'):
+            cls.BULLET = load_centred('bullet')
+
+    def __init__(self, world, pos, dir):
+        self.world = world
+        self.position = pos
+        self.direction = dir
+        self.sprite = pyglet.sprite.Sprite(Bullet.BULLET)
+        self.sprite.position = pos.x, pos.y
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.position = self.position
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.position += 50 * self.direction
+        self.do_collisions()
+
+    def do_collisions(self):
+        for o in self.world.collidable_objects:
+            if o.colliding(self):
+                self.kill()
+
+    def kill(self):
+        Explosion(self.world, self.position)
+        self.world.kill(self)
 
 
 class Camera(object):
@@ -261,6 +306,10 @@ class World(EventDispatcher):
 
         self.moonbase_signpost.draw()
 
+    def shoot(self, pos, dir):
+        print 'Shooting'
+        bullet = Bullet(self, pos, dir)
+
 World.register_event_type('on_player_death')
 
 
@@ -274,6 +323,7 @@ class Game(object):
 
         # load the sprites for objects
         Asteroid.load()
+        Bullet.load()
 
         # initialise the World and start the game
         self.world = World(self.keyboard)

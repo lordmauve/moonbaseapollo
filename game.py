@@ -307,8 +307,7 @@ class World(EventDispatcher):
         self.moonbase_signpost.draw()
 
     def shoot(self, pos, dir):
-        print 'Shooting'
-        bullet = Bullet(self, pos, dir)
+        Bullet(self, pos, dir)
 
 World.register_event_type('on_player_death')
 

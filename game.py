@@ -4,12 +4,13 @@ import pyglet
 from pyglet.window import key
 from pyglet import gl
 from wasabi.geom import v
+from wasabi.geom.poly import Rect
 from loader import load_centred
 
 from objects import Moon
+from labels import FadeyLabel, FONT_FILENAME, Signpost
 
-FONT_NAME = 'Gunship Condensed'
-FONT_FILENAME = 'gun4fc.ttf'
+
 WIDTH = 1024
 HEIGHT = 600
 
@@ -117,46 +118,6 @@ class Player(object):
         self.velocity += a
 
 
-class FadeyLabel(object):
-    FADE_START = 8.0   # seconds
-    FADE_END = 10.0  # seconds
-
-    FADE_TIME = FADE_END - FADE_START
-
-    def __init__(
-            self, world, text, follow,
-            offset=v(10, -20),
-            colour=(255, 255, 255)):
-        self.world = world
-        self.follow = follow
-        self.colour = colour
-        self.offset = offset
-        self.label = pyglet.text.Label(
-            text,
-            font_name=FONT_NAME,
-            color=colour + (255,)
-        )
-        self.age = 0
-        self.world.spawn(self)
-
-    def update(self, ts):
-        self.age += ts
-        if self.age >= self.FADE_END:
-            # Dead
-            self.world.objects.remove(self)
-        elif self.age > self.FADE_START:
-            # Fading
-            alpha = 1.0 - (self.age - self.FADE_START) / self.FADE_TIME
-            self.label.color = self.colour + (int(255 * alpha),)
-
-    def draw(self):
-        # track the thing we are labelling
-        self.label.x, self.label.y = v(self.follow.position) + self.offset
-
-        # Draw label
-        self.label.draw()
-
-
 class Camera(object):
     def __init__(self, position=v(0, 0)):
         self.position = position
@@ -169,6 +130,9 @@ class Camera(object):
 
     def track(self, o):
         self.position = o.position
+
+    def get_viewport(self):
+        return Rect.from_cwh(self.position, WIDTH, HEIGHT)
 
 
 class World(object):
@@ -196,6 +160,12 @@ class World(object):
             'Moonbase Alpha',
             follow=moon.moonbase,
             offset=v(30, 15)
+        )
+
+        self.moonbase_signpost = Signpost(
+            self.camera,
+            'Moonbase Alpha',
+            moon.moonbase
         )
 
     def spawn(self, o):
@@ -239,6 +209,8 @@ class World(object):
         for o in self.objects:
             o.draw()
         self.player.draw()
+
+        self.moonbase_signpost.draw()
 
 
 class Game(object):

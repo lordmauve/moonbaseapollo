@@ -235,16 +235,6 @@
          id="stop3851-4" />
     </linearGradient>
     <radialGradient
-       r="11.797235"
-       fy="276.64789"
-       fx="184.28572"
-       cy="276.64789"
-       cx="184.28572"
-       gradientUnits="userSpaceOnUse"
-       id="radialGradient5660"
-       xlink:href="#linearGradient3847-7"
-       inkscape:collect="always" />
-    <radialGradient
        inkscape:collect="always"
        xlink:href="#linearGradient3847-7"
        id="radialGradient5718"
@@ -263,10 +253,10 @@
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
-     inkscape:cx="-250.51686"
-     inkscape:cy="37.413142"
+     inkscape:cx="34.702328"
+     inkscape:cy="-208.29663"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer2"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -2509,5 +2499,24 @@
          id="tspan5769"
          x="-542.24725"
          y="103.61363">RESUME GAME</tspan></text>
+    <path
+       sodipodi:type="star"
+       style="color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.5;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="path5773"
+       sodipodi:sides="3"
+       sodipodi:cx="-223"
+       sodipodi:cy="380.08093"
+       sodipodi:r1="37.054016"
+       sodipodi:r2="32.089718"
+       sodipodi:arg1="-1.5707963"
+       sodipodi:arg2="-0.52359875"
+       inkscape:flatsided="true"
+       inkscape:rounded="0"
+       inkscape:randomized="0"
+       d="m -223,343.02692 32.08972,55.58102 -64.17944,0 z"
+       transform="matrix(0.10803858,-0.10803858,0.29748052,0.29748052,-308.09167,235.54055)"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/pointer.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90" />
   </g>
 </svg>

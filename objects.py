@@ -17,6 +17,7 @@ class MoonBase(object):
 
 class Moon(object):
     RADIUS = 145.0
+    ANGULAR_VELOCITY = 5.0  # degrees/second
 
     @classmethod
     def load(cls):
@@ -30,7 +31,6 @@ class Moon(object):
         self.sprite = pyglet.sprite.Sprite(self.img)
         self.sprite.position = self.position
         self.rotation = 0  # rotation in degrees
-        self.angular_velocity = 10
         self.moonbase = MoonBase(self)
 
         self.world.spawn(self)
@@ -40,5 +40,5 @@ class Moon(object):
         self.sprite.draw()
 
     def update(self, ts):
-        self.rotation += self.angular_velocity * ts
+        self.rotation += self.ANGULAR_VELOCITY * ts
 

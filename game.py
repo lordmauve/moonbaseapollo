@@ -1,7 +1,11 @@
 import random
 import pyglet
 from pyglet.window import key
+from pyglet import gl
 from wasabi.geom import v
+from loader import load_centred
+
+from objects import Moonbase
 
 WIDTH = 1024
 HEIGHT = 600
@@ -14,18 +18,6 @@ pyglet.resource.path += [
     'fonts/',
 ]
 pyglet.resource.reindex()
-
-
-def make_centred(image):
-    w = image.width
-    h = image.height
-    image.anchor_x = w // 2
-    image.anchor_y = h // 2
-    return image
-
-
-def load_centred(img):
-    return make_centred(pyglet.image.load('sprites/%s.png' % img))
 
 
 class Asteroid(object):
@@ -96,12 +88,31 @@ class Player(object):
         self.sprite.rotation += direction * 5
 
 
+class Camera(object):
+    def __init__(self, pos=v(0, 0)):
+        self.pos = pos
+        self.offset = v(WIDTH * -0.5, HEIGHT * -0.5)
+
+    def set_matrix(self):
+        x, y = self.pos + self.offset
+        gl.glLoadIdentity()
+        gl.glTranslatef(-x, -y, 0)
+
+
 class World(object):
     def __init__(self, keyboard):
         self.keyboard = keyboard
         self.objects = []
+
+        self.camera = Camera()
+        self.setup_projection_matrix()
+        self.setup_world()
+
+    def setup_world(self):
+        """Create the initial world."""
         self.generate_asteroids()
-        self.player = Player(self, 50, 50)
+        self.objects.append(Moonbase(self))
+        self.player = Player(self, 0, 200)
 
     def generate_asteroids(self):
         while len(self.objects) < 5:
@@ -115,14 +126,25 @@ class World(object):
             # else:
             #     self.objects.append(ast)
 
+    def setup_projection_matrix(self):
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glOrtho(
+            WIDTH * -0.5, WIDTH * 0.5,
+            HEIGHT * -0.5, HEIGHT * 0.5,
+            -100, 100
+        )
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+
     def update(self, ts):
         self.player.update(ts)
+        self.camera.pos = self.player.sprite.position
         for o in self.objects:
             o.update(ts)
 
     def draw(self):
         # draw a black background
-        pyglet.gl.glClearColor(0, 0, 0, 1)
+        gl.glClearColor(0, 0, 0, 1)
+        self.camera.set_matrix()
 
         for o in self.objects:
             o.draw()

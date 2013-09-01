@@ -1,9 +1,21 @@
-import math
 import pyglet.sprite
 from loader import load_centred
+from wasabi.geom import v
 
 
-class Moonbase(object):
+class MoonBase(object):
+    RADIUS = 33.0
+    OFFSET = v(0, 130.0)
+
+    def __init__(self, moon):
+        self.moon = moon
+
+    @property
+    def position(self):
+        return self.moon.position + self.OFFSET.rotated(-self.moon.rotation)
+
+
+class Moon(object):
     RADIUS = 145.0
 
     @classmethod
@@ -13,16 +25,18 @@ class Moonbase(object):
 
     def __init__(self, world, x=0, y=0):
         self.world = world
-        self.x = x
-        self.y = y
+        self.position = v(x, y)
         self.load()
         self.sprite = pyglet.sprite.Sprite(self.img)
-        self.sprite.position = x, y
-        self.rotation = 0  # rotation in radians
-        self.angular_velocity = 0.05
+        self.sprite.position = self.position
+        self.rotation = 0  # rotation in degrees
+        self.angular_velocity = 10
+        self.moonbase = MoonBase(self)
+
+        self.world.spawn(self)
 
     def draw(self):
-        self.sprite.rotation = math.degrees(self.rotation)
+        self.sprite.rotation = self.rotation
         self.sprite.draw()
 
     def update(self, ts):

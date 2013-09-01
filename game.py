@@ -6,7 +6,7 @@ from pyglet import gl
 from wasabi.geom import v
 from loader import load_centred
 
-from objects import Moonbase
+from objects import Moon
 
 FONT_NAME = 'Gunship Condensed'
 FONT_FILENAME = 'gun4fc.ttf'
@@ -60,14 +60,13 @@ class Asteroid(object):
 
 from collections import namedtuple
 
-ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag braking')
+ShipModel = namedtuple('ShipModel', 'sprite rotation acceleration drag')
 
 CUTTER = ShipModel(
     sprite=load_centred('cutter'),
     rotation=100,  # angular velocity, degrees/second
     acceleration=15,  # pixels per second per second
     drag=0.3,  # fraction of velocity lost/second. This provides a natural cap on velocity.
-    braking=0.9,  # fraction of velocity lost/second when braking
 )
 
 
@@ -96,11 +95,7 @@ class Player(object):
             self.rotate_cw(ts)
 
         if ts:
-            if self.world.keyboard[key.DOWN]:
-                drag = self.ship.braking
-            else:
-                drag = self.ship.drag
-            self.velocity *= (1.0 - drag) ** ts
+            self.velocity *= (1.0 - self.ship.drag) ** ts
         # Constant acceleration formula
         self.position += 0.5 * (u + self.velocity) * ts
 
@@ -142,6 +137,7 @@ class FadeyLabel(object):
             color=colour + (255,)
         )
         self.age = 0
+        self.world.spawn(self)
 
     def update(self, ts):
         self.age += ts
@@ -187,14 +183,26 @@ class World(object):
     def setup_world(self):
         """Create the initial world."""
         self.generate_asteroids()
-        self.objects.append(Moonbase(self))
+        moon = Moon(self)
         self.player = Player(self, 0, 200)
-        self.objects.append(FadeyLabel(
+        FadeyLabel(
             self,
             'Cutter 1',
             follow=self.player,
             colour=(0, 128, 0)
-        ))
+        )
+        FadeyLabel(
+            self,
+            'Moonbase Alpha',
+            follow=moon.moonbase,
+            offset=v(30, 15)
+        )
+
+    def spawn(self, o):
+        self.objects.append(o)
+
+    def kill(self, o):
+        self.objects.remove(o)
 
     def generate_asteroids(self):
         while len(self.objects) < 5:

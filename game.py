@@ -61,11 +61,46 @@ class Asteroid(object):
         pass
 
 
+class Player(object):
+    @classmethod
+    def load(cls):
+        if hasattr(cls, 'CUTTER'):
+            return
+        cls.CUTTER = load_centred('CUTTER')
+
+    def __init__(self, world, x, y, ship_type='CUTTER'):
+        self.world = world
+        self.x = x
+        self.y = y
+        self.sprite = pyglet.sprite.Sprite(getattr(Player, ship_type))
+        self.sprite.position = x, y
+        # self.sprite.scale = scale
+        self.sprite.rotation = random.random() * 360
+
+    def draw(self):
+        self.sprite.draw()
+
+    def update(self, ts):
+        if self.world.keyboard[key.UP]:
+            print "UP"
+        if self.world.keyboard[key.DOWN]:
+            print "DOWN"
+        if self.world.keyboard[key.LEFT]:
+            self.rotate(clockwise=False)
+        if self.world.keyboard[key.RIGHT]:
+            self.rotate(clockwise=True)
+
+    def rotate(self, clockwise=True):
+        direction = 1 if clockwise else -1
+        self.sprite.rotation += direction * 5
+
+
 class World(object):
     def __init__(self, keyboard):
         self.keyboard = keyboard
         self.objects = []
         self.generate_asteroids()
+        self.player = Player(self, 50, 50)
 
     def generate_asteroids(self):
         while len(self.objects) < 5:
@@ -79,18 +114,8 @@ class World(object):
             # else:
             #     self.objects.append(ast)
 
-    def update_player(self, ts):
-        if self.keyboard[key.UP]:
-            print "UP"
-        if self.keyboard[key.DOWN]:
-            print "DOWN"
-        if self.keyboard[key.LEFT]:
-            print "LEFT"
-        if self.keyboard[key.RIGHT]:
-            print "RIGHT"
-
     def update(self, ts):
-        self.update_player(ts)
+        self.player.update(ts)
         for o in self.objects:
             o.update(ts)
 
@@ -100,6 +125,7 @@ class World(object):
 
         for o in self.objects:
             o.draw()
+        self.player.draw()
 
 
 class Game(object):
@@ -109,7 +135,12 @@ class Game(object):
             height=HEIGHT
         )
         self.keyboard = key.KeyStateHandler()
+
+        # load the sprites for objects
         Asteroid.load()
+        Player.load()
+
+        # initialise the World and start the game
         self.world = World(self.keyboard)
         self.start()
 

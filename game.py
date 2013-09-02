@@ -443,6 +443,9 @@ class Game(object):
         self.start_mission()
 
     def start_mission(self, *args):
+        # Cancel the next mission event if we got here by key press
+        pyglet.clock.unschedule(self.next_mission)
+
         # Start mission
         with log_exceptions():
             # Gracefully handle exceptions loading missions
@@ -460,7 +463,7 @@ class Game(object):
 
     def on_mission_finish(self):
         self.say('Mission complete!', colour=GOLD)
-        self.next_mission()
+        pyglet.clock.schedule(self.next_mission, 5)
 
     def next_mission(self, *args):
         self.mission_number += 1

@@ -10,6 +10,10 @@ from labels import FONT_NAME, GOLD, CYAN
 DEFAULT_COLOUR = CYAN
 
 
+# How long messages stay in the HUD
+MESSAGE_TIME = 10  # seconds
+
+
 class HUD(object):
     def __init__(self, width, height):
         self.message_labels = []
@@ -34,13 +38,22 @@ class HUD(object):
         self.money.text = u'%d€' % money
 
     def append_message(self, message, colour=DEFAULT_COLOUR):
+        pyglet.clock.schedule_once(self.pop_messages, MESSAGE_TIME, 1)
         self._add_message(message, colour=colour)
         self._layout_messages()
 
     def append_messages(self, messages, colour=DEFAULT_COLOUR):
         for m in messages:
             self._add_message(m, colour=colour)
+        pyglet.clock.schedule_once(self.pop_messages, MESSAGE_TIME, len(messages))
         self._layout_messages()
+
+    def pop_messages(self, dt, count):
+        """Pop count messages."""
+        ms = self.message_labels[:count]
+        del self.message_labels[:count]
+        for m in ms:
+            m.delete()
 
     def _add_message(self, message, colour=DEFAULT_COLOUR):
         self.message_labels.append(Label(

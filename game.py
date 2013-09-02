@@ -72,7 +72,6 @@ class Player(object):
         self.MASS = self.ship.mass
         self.world.spawn(self)
         self.tethered = None
-        self.money = 0
 
         self.pick_name()
 
@@ -270,6 +269,7 @@ class World(EventDispatcher):
         self.keyboard = keyboard
         self.objects = []
         self.collidable_objects = []
+        self.money = 40
 
         self.camera = Camera()
         self.hud = HUD(WIDTH, HEIGHT)
@@ -280,8 +280,13 @@ class World(EventDispatcher):
         self.target_region = None
 
     def spawn_player(self):
-        self.player = Player(self, 0, 180)
-        self.camera.track(self.player)
+        self.money -= 10
+        self.hud.set_money(self.money)
+        if self.money > 0:
+            self.player = Player(self, 0, 180)
+            self.camera.track(self.player)
+        else:
+            self.say("{control}: Not enough points to restart!")
 
     def setup_world(self):
         """Create the initial world."""
@@ -300,7 +305,7 @@ class World(EventDispatcher):
             moon.moonbase
         )]
         self.spawn_player()
-        self.hud.set_money(self.player.money)
+        self.hud.set_money(self.money)
 
     def spawn(self, o):
         self.objects.append(o)
@@ -355,6 +360,13 @@ class World(EventDispatcher):
             s.draw()
         self.hud.draw()
 
+    def say(self, message, colour=CYAN):
+        msg = message.format(
+            name=self.player.name,
+            control='Moonbase Alpha'
+        )
+        self.hud.append_message(msg, colour=colour)
+
     def add_signpost(self, s):
         self.signposts.append(s)
 
@@ -362,8 +374,8 @@ class World(EventDispatcher):
         del self.signposts[1:]
 
     def on_item_collected(self, collector, item):
-        self.player.money += item.VALUE
-        self.hud.set_money(self.player.money)
+        self.money += item.VALUE
+        self.hud.set_money(self.money)
 
     def set_target_region(self, position, radius):
         """Set a circular target region.
@@ -417,8 +429,9 @@ class Game(object):
         self.world.hud.append_message(msg, colour=colour)
 
     def respawn(self, *args):
-        self.say("{control}: Please treat this one more carefully!")
         self.world.spawn_player()
+        if self.world.player.alive:
+            self.say("{control}: Please treat this one more carefully!")
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.Z:

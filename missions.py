@@ -3,7 +3,7 @@ from functools import wraps, partial
 from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
-from labels import Signpost, GOLD, GREEN
+from labels import Signpost, GOLD, GREEN, WHITE
 import hud
 
 
@@ -171,7 +171,6 @@ class Mission(Script):
         pyglet.clock.unschedule(self.next)
         self.world.clear_target_region()
         self.world.pop_handlers()
-        self.world.hud.clear_messages()
         self.world.clear_signposts()
 
     def skip(self):
@@ -183,16 +182,20 @@ class Mission(Script):
 Mission.register_event_type('on_failure')
 
 
+ICE_POS = v(1500, -1200)
 m = Mission('Harvesting Ice')
 m.say("{control}: Stand by {name}, we're going to run some diagnostics.", delay=6)
 m.say("{control}: {name}, your system readouts are green. You are go for mission.")
 m.say("{control}: We are all very thirsty down here. Can you find us a source of water?")
-m.say("{control}: You can harvest water from asteroids made of ice.")
+m.say("You can harvest water from asteroids made of ice.", colour=WHITE, delay=0)
 m.goal("Collect some ice")
-m.spawn('objects.IceAsteroid', v(1500, -1200), signpost='Ice')
-m.say_if_object_shot('objects.IceAsteroid', 'Move your ship over an ice cube to collect it.')
-m.say_if_object_shot('objects.Asteroid', 'Be careful! Shooting rocks will blast out dangerous rock fragments.')
-m.say_if_object_tractored('objects.Ice', 'Great! Now take this back to the moon base. Press Z to release.')
+m.spawn('objects.IceAsteroid', ICE_POS, signpost='Ice')
+m.player_must_enter_region(ICE_POS, 400)
+m.say('Press Z to shoot the asteroid.', colour=WHITE)
+m.say_if_object_shot('objects.IceAsteroid', 'Move your ship over an ice cube to collect it.', colour=WHITE)
+m.say_if_object_shot('objects.Asteroid', 'Be careful! Shooting rocks will blast out dangerous rock fragments.', colour=WHITE)
+m.say_if_object_tractored('objects.Ice', 'Great! Now take this back to the moon base.', colour=WHITE)
+m.say_if_region_entered(v(0, 0), 400, 'Dropping off cargo is best done very slowly and carefully. Press Z to release.', colour=WHITE)
 m.player_must_collect('objects.Ice')
 m.say("{control}: Delicious, anid ice cold too!")
 

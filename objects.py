@@ -29,9 +29,9 @@ class Collector(Collidable):
     id = None
 
     def can_collect(self, o):
-        if isinstance(o, Astronaut):
-            return o.destination == self.id
-        return isinstance(o, Collectable)
+        return isinstance(o, Collectable) and (
+            o.destination is None or o.destination == self.id
+        )
 
     def collect(self, o):
         o.kill()
@@ -52,6 +52,7 @@ class Collector(Collidable):
 
 
 class MoonBase(Collector):
+    id = 'moonbase'
     alive = True
     RADIUS = 50.0
     OFFSET = v(0, 130.0)
@@ -129,11 +130,22 @@ class Collectable(Collidable):
         if not hasattr(cls, 'img'):
             cls.img = load_centred(cls.SPRITE_NAME)
 
-    def __init__(self, world, position, velocity=v(0, 0)):
+    def __init__(self, world, position, velocity=v(0, 0), destination='moonbase'):
+        """Create a collectable.
+
+        destination is the id of a collector this is bound for. It will not be
+        accepted at other collectors.
+
+        Pass destination=None to allow the collectable to be collected at all
+        collectors.
+
+        """
         self.world = world
         self.position = position
-        self.sprite = pyglet.sprite.Sprite(self.img)
         self.velocity = velocity
+        self.destination = destination
+
+        self.sprite = pyglet.sprite.Sprite(self.img)
         self.sprite.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * self.MAX_ANGULAR_VELOCITY
         self.tethered_to = None
@@ -183,12 +195,19 @@ class Cheese(Collectable):
 
 class Ice(Collectable):
     SPRITE_NAME = 'ice-fragment'
-    VALUE = 10
+    VALUE = 15
 
 
 class Metal(Collectable):
     SPRITE_NAME = 'metal-fragment'
     VALUE = 30
+
+
+class FrozenFood(Collectable):
+    SPRITE_NAME = 'frozen-food'
+    VALUE = 35
+    MASS = 2
+    RADIUS = 14
 
 
 class Astronaut(Collectable):
@@ -206,7 +225,6 @@ class Astronaut(Collectable):
 
     def __init__(self, *args, **kwargs):
         self.name = kwargs.pop('name', None) or random.choice(self.NAMES)
-        self.destination = kwargs.pop('destination', None)
         super(Astronaut, self).__init__(*args, **kwargs)
 
     def explode(self):
@@ -358,7 +376,8 @@ CLASSES = [
     Ice,
     Cheese,
     Astronaut,
-    CommsStation
+    CommsStation,
+    FrozenFood
 ]
 
 

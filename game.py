@@ -13,6 +13,7 @@ from objects import Moon, Collidable, spawn_random_collectable, spawn_random_ast
 from effects import Explosion
 from labels import TrackingLabel, FONT_FILENAME, Signpost
 from hud import HUD
+from missions import MISSIONS
 
 
 WIDTH = 1024
@@ -276,11 +277,11 @@ class World(EventDispatcher):
             offset=v(30, 15)
         )
 
-        self.moonbase_signpost = Signpost(
+        self.signposts = [Signpost(
             self.camera,
             'Moonbase Alpha',
             moon.moonbase
-        )
+        )]
         self.spawn_player()
 
     def spawn(self, o):
@@ -326,8 +327,15 @@ class World(EventDispatcher):
         for o in self.objects:
             o.draw()
 
-        self.moonbase_signpost.draw()
+        for s in self.signposts:
+            s.draw()
         self.hud.draw()
+
+    def add_signpost(self, s):
+        self.signposts.append(s)
+
+    def clear_signposts(self):
+        del self.signposts[1:]
 
 World.register_event_type('on_player_death')
 
@@ -347,6 +355,8 @@ class Game(object):
         # initialise the World and start the game
         self.world = World(self.keyboard)
         self.world.set_handler('on_player_death', self.on_player_death)
+        self.mission = None
+        self.mission_number = 0
         self.start()
 
     def on_player_death(self):
@@ -367,34 +377,28 @@ class Game(object):
                     player.shoot()
             return EVENT_HANDLED
 
-    def say(self, message):
-        msg = message.format(
-            name=self.world.player.name,
-            control='Moonbase Alpha'
-        )
-        self.world.hud.set_message(msg)
+    def start_mission(self, *args):
+        # Start mission
+        self.mission = MISSIONS[self.mission_number]
+        self.mission.setup(self)
+        self.mission.start()
+
+    def next_mission(self, *args):
+        self.mission_number += 1
+        self.start_mission()
 
     def start(self):
         self.window.push_handlers(self.keyboard, on_draw=self.on_draw)
         self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
-
-        self.say("{control}: Stand by {name}, we're going to run some diagnostics.")
-        pyglet.clock.schedule_once(
-            lambda dt, game: game.say("{control}: {name}, your system readouts are green. You are go for mission."),
-            6,
-            self
-        )
-        pyglet.clock.schedule_once(
-            lambda dt, hud: hud.clear_messages(),
-            10,
-            self.world.hud
-        )
+        pyglet.clock.schedule_once(self.start_mission, 3)
         pyglet.app.run()
 
     def on_draw(self):
         self.window.clear()
         self.world.draw()
+        if self.mission:
+            self.mission.draw()
 
     def update(self, ts):
         self.world.update(ts)

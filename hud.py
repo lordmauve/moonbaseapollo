@@ -33,11 +33,13 @@ class HUD(object):
     def set_money(self, money):
         self.money.text = u'%d€' % money
 
-    def set_message(self, message):
-        self.set_messages([message])
-
     def append_message(self, message, colour=DEFAULT_COLOUR):
-        self._add_message(message)
+        self._add_message(message, colour=colour)
+        self._layout_messages()
+
+    def append_messages(self, messages, colour=DEFAULT_COLOUR):
+        for m in messages:
+            self._add_message(m, colour=colour)
         self._layout_messages()
 
     def _add_message(self, message, colour=DEFAULT_COLOUR):
@@ -57,12 +59,6 @@ class HUD(object):
         n = len(self.message_labels)
         for i, l in enumerate(self.message_labels):
             l.y = (n - i) * 20 + 40
-
-    def set_messages(self, messages):
-        self.clear_messages()
-        for m in messages:
-            self._add_message(m)
-        self._layout_messages()
 
     def clear_messages(self):
         for m in self.message_labels:

@@ -195,6 +195,8 @@ class Player(object):
         Bullet(self.world, self.position, dir, self.velocity)
 
     def attach(self, other):
+        self.release()
+        self.world.dispatch_event('on_object_tractored', other)
         self.tethered = other
         other.tethered_to = self
 
@@ -233,6 +235,7 @@ class Bullet(object):
     def do_collisions(self):
         for o in self.world.collidable_objects:
             if o.colliding(self):
+                self.world.dispatch_event('on_object_shot', o)
                 self.kill()
                 if isinstance(o, Asteroid):
                     o.fragment(self.position)
@@ -350,6 +353,8 @@ class World(EventDispatcher):
 
 World.register_event_type('on_player_death')
 World.register_event_type('on_item_collected')
+World.register_event_type('on_object_shot')
+World.register_event_type('on_object_tractored')
 
 
 class Game(object):
@@ -407,6 +412,7 @@ class Game(object):
                 import traceback
                 traceback.print_exc()
             else:
+                print 'Missions reloaded'
                 self.restart_mission()
 
     def restart_mission(self, *args):
@@ -426,7 +432,7 @@ class Game(object):
             try:
                 self.mission = missions.MISSIONS[self.mission_number]
             except IndexError:
-                self.say('Well done! You have completed the game!')
+                self.say('Well done! You have completed the game!', colour=GOLD)
             else:
                 self.mission.setup(self)
                 self.mission.start()
@@ -438,13 +444,15 @@ class Game(object):
 
     def next_mission(self, *args):
         self.mission_number += 1
+        print "Skipping to next mission"
         if self.mission:
             with log_exceptions():
                 self.mission.finish()
         self.start_mission()
 
     def previous_mission(self, *args):
-        self.mission_number -= 1
+        self.mission_number = max(0, self.mission_number - 1)
+        print "Skipping to previous mission"
         if self.mission:
             with log_exceptions():
                 self.mission.finish()
@@ -457,8 +465,13 @@ class Game(object):
         pyglet.clock.schedule_once(self.start_mission, 3)
 
         while True:
-            with log_exceptions():
+            try:
                 pyglet.app.run()
+            except Exception:
+                import traceback
+                traceback.print_exc()
+            else:
+                break
 
     def on_draw(self):
         self.window.clear()

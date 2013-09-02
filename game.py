@@ -275,6 +275,8 @@ class World(EventDispatcher):
         self.setup_projection_matrix()
         self.setup_world()
 
+        self.target_region = None
+
     def spawn_player(self):
         self.player = Player(self, 0, 180)
         self.camera.track(self.player)
@@ -332,6 +334,12 @@ class World(EventDispatcher):
             o.update(ts)
         self.camera.track(self.player)
 
+        if self.target_region and self.player.alive:
+            position, radius2 = self.target_region
+            if (self.player.position - position).length2 < radius2:
+                self.dispatch_event('on_region_entered')
+                self.clear_target_region()
+
     def draw(self):
         # draw a black background
         gl.glClearColor(0, 0, 0, 1)
@@ -350,11 +358,23 @@ class World(EventDispatcher):
     def clear_signposts(self):
         del self.signposts[1:]
 
+    def set_target_region(self, position, radius):
+        """Set a circular target region.
+
+        When entering this region, the on_region_entered event will be fired.
+
+        """
+        self.target_region = (position, radius * radius)
+
+    def clear_target_region(self):
+        self.target_region = None
+
 
 World.register_event_type('on_player_death')
 World.register_event_type('on_item_collected')
 World.register_event_type('on_object_shot')
 World.register_event_type('on_object_tractored')
+World.register_event_type('on_region_entered')
 
 
 class Game(object):
@@ -462,7 +482,7 @@ class Game(object):
         self.window.push_handlers(self.keyboard, on_draw=self.on_draw)
         self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
-        pyglet.clock.schedule_once(self.start_mission, 3)
+        self.start_mission()
 
         while True:
             try:

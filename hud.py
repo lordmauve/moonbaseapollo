@@ -6,6 +6,10 @@ from pyglet.text import Label
 from labels import FONT_NAME, GOLD, CYAN
 
 
+# Set the default message colour
+DEFAULT_COLOUR = CYAN
+
+
 class HUD(object):
     def __init__(self, width, height):
         self.message_labels = []
@@ -32,11 +36,11 @@ class HUD(object):
     def set_message(self, message):
         self.set_messages([message])
 
-    def append_message(self, message):
+    def append_message(self, message, colour=DEFAULT_COLOUR):
         self._add_message(message)
         self._layout_messages()
 
-    def _add_message(self, message):
+    def _add_message(self, message, colour=DEFAULT_COLOUR):
         self.message_labels.append(Label(
             text=message,
             x=10,
@@ -45,7 +49,7 @@ class HUD(object):
             font_size=10,
             anchor_x='left',
             anchor_y='baseline',
-            color=CYAN + (255,),
+            color=colour + (255,),
             batch=self.batch
         ))
 

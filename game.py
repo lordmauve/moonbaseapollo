@@ -1,5 +1,6 @@
 import math
 from collections import namedtuple, defaultdict
+from contextlib import contextmanager
 
 import pyglet
 from pyglet.window import key
@@ -11,9 +12,8 @@ from wasabi.geom.poly import Rect
 from loader import load_centred
 from objects import Moon, Collidable, spawn_random_asteroid, load_all, Asteroid
 from effects import Explosion
-from labels import TrackingLabel, FONT_FILENAME, Signpost, GREEN
+from labels import TrackingLabel, FONT_FILENAME, Signpost, GREEN, GOLD, CYAN
 from hud import HUD
-import missions
 
 
 WIDTH = 1024
@@ -41,6 +41,16 @@ CUTTER = ShipModel(
     radius=5.0,
     mass=1
 )
+
+
+@contextmanager
+def log_exceptions():
+    """Suppress exceptions but print them to the console."""
+    try:
+        yield
+    except Exception:
+        import traceback
+        traceback.print_exc()
 
 
 class Player(object):
@@ -365,12 +375,12 @@ class Game(object):
         # Wait a couple of seconds then respawn the player
         pyglet.clock.schedule_once(self.respawn, 2)
 
-    def say(self, message):
+    def say(self, message, colour=CYAN):
         msg = message.format(
             name=self.world.player.name,
             control='Moonbase Alpha'
         )
-        self.world.hud.set_message(msg)
+        self.world.hud.append_message(msg, colour=colour)
 
     def respawn(self, *args):
         self.say("{control}: Please treat this one more carefully!")
@@ -385,23 +395,59 @@ class Game(object):
                 else:
                     player.shoot()
             return EVENT_HANDLED
+        elif symbol == key.F3:
+            self.next_mission()
+        elif symbol == key.F4:
+            self.previous_mission()
         elif symbol == key.F5:
-            reload(missions)
-            self.restart_mission()
+            try:
+                import missions
+                reload(missions)
+            except Exception:
+                import traceback
+                traceback.print_exc()
+            else:
+                self.restart_mission()
 
     def restart_mission(self, *args):
         if self.mission:
-            self.mission.finish()
+            with log_exceptions():
+                self.mission.finish()
+
         self.start_mission()
 
     def start_mission(self, *args):
         # Start mission
-        self.mission = missions.MISSIONS[self.mission_number]
-        self.mission.setup(self)
-        self.mission.start()
+        with log_exceptions():
+            # Gracefully handle exceptions loading missions
+            # to allow for it to be reloaded
+
+            import missions
+            try:
+                self.mission = missions.MISSIONS[self.mission_number]
+            except IndexError:
+                self.say('Well done! You have completed the game!')
+            else:
+                self.mission.setup(self)
+                self.mission.start()
+                self.mission.set_handler('on_finish', self.on_mission_finish)
+
+    def on_mission_finish(self):
+        self.say('Mission complete!', colour=GOLD)
+        self.next_mission()
 
     def next_mission(self, *args):
         self.mission_number += 1
+        if self.mission:
+            with log_exceptions():
+                self.mission.finish()
+        self.start_mission()
+
+    def previous_mission(self, *args):
+        self.mission_number -= 1
+        if self.mission:
+            with log_exceptions():
+                self.mission.finish()
         self.start_mission()
 
     def start(self):
@@ -409,13 +455,14 @@ class Game(object):
         self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
         pyglet.clock.schedule_once(self.start_mission, 3)
-        pyglet.app.run()
+
+        while True:
+            with log_exceptions():
+                pyglet.app.run()
 
     def on_draw(self):
         self.window.clear()
         self.world.draw()
-        if self.mission:
-            self.mission.draw()
 
     def update(self, ts):
         self.world.update(ts)

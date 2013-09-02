@@ -331,12 +331,7 @@ class IceAsteroid(Asteroid):
 
 
 def spawn_random_asteroid(world):
-    cls = random.choice([Asteroid] * 10 + [
-        CheeseAsteroid,
-        IceAsteroid,
-        MetalAsteroid,
-    ])
-    cls.random(world)
+    Asteroid.random(world)
 
 
 def spawn_random_collectable(world):

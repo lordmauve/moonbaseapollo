@@ -241,4 +241,28 @@ m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, destina
 m.say("{control}: This is {astronaut.name}.")
 m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
+m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
+
+
+# TODO!
+#m = Mission('Defend the station')
+#m.spawn('objects.Asteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
+#m.say('{control}: Emergency, {name}! An asteroid is heading for Comm Station 4')
+#m.goal('Destroy the asteroid')
+#m.player_must_destroy('asteroid')
+
+
+POSITIONS = [
+    v(-700, -900),
+    v(-1000, 900),
+    v(500, 700),
+]
+m = Mission('Collect metal')
+m.say("{control}: {name}, our fabrication facility is just about ready.")
+m.say("{control}: We want you to supply us with metal.")
+m.goal('Collect 5 metal')
+for pos in POSITIONS:
+    m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
+m.player_must_collect('objects.Metal', 5)
+m.say("{control}: Thank you, {name}, we're firing up the furnaces.")

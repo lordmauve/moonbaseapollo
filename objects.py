@@ -25,31 +25,67 @@ class Collidable(object):
         player.explode()
 
 
-class MoonBase(Collidable):
+class Collector(Collidable):
+    id = None
+
+    def can_collect(self, o):
+        if isinstance(o, Astronaut):
+            return o.destination == self.id
+        return isinstance(o, Collectable)
+
+    def collect(self, o):
+        o.kill()
+        self.world.dispatch_event('on_item_collected', self, o)
+        if o.VALUE:
+            FloatyLabel(
+                self.world, u'+%d€' % o.VALUE,
+                position=o.position,
+                colour=GOLD
+            )
+
+    def do_collisions(self):
+        for o in self.world.collidable_objects:
+            if o.colliding(self):
+                if self.can_collect(o):
+                    self.collect(o)
+                    return
+
+
+class MoonBase(Collector):
     alive = True
     RADIUS = 50.0
     OFFSET = v(0, 130.0)
 
-    def __init__(self, moon):
+    def __init__(self, world, moon):
+        self.world = world
         self.moon = moon
 
     @property
     def position(self):
         return self.moon.position + self.OFFSET.rotated(-self.moon.rotation)
 
-    def do_collisions(self, world):
-        for o in world.collidable_objects:
-            if o.colliding(self):
-                if isinstance(o, Collectable):
-                    o.kill()
-                    print 'raise on_item_collected'
-                    world.dispatch_event('on_item_collected', self, o)
-                    FloatyLabel(
-                        world, u'+%d€' % o.VALUE,
-                        position=o.position,
-                        colour=GOLD
-                    )
-                    return
+
+class CommsStation(Collector):
+    RADIUS = 30.0
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'img'):
+            cls.img = load_centred('comms-station')
+            cls.img.anchor_y = 40
+
+    def __init__(self, world, position):
+        self.position = position
+        self.world = world
+        self.sprite = pyglet.sprite.Sprite(self.img)
+        self.sprite.position = self.position
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def update(self, dt):
+        self.do_collisions()
 
 
 class Moon(Collidable):
@@ -68,7 +104,7 @@ class Moon(Collidable):
         self.sprite = pyglet.sprite.Sprite(self.img)
         self.sprite.position = self.position
         self.rotation = 0  # rotation in degrees
-        self.moonbase = MoonBase(self)
+        self.moonbase = MoonBase(world, self)
 
         self.world.spawn(self)
 
@@ -78,7 +114,7 @@ class Moon(Collidable):
 
     def update(self, ts):
         self.rotation += self.ANGULAR_VELOCITY * ts
-        self.moonbase.do_collisions(self.world)
+        self.moonbase.do_collisions()
 
 
 class Collectable(Collidable):
@@ -86,6 +122,7 @@ class Collectable(Collidable):
     SPRITE_NAME = None  # Subclasses should set this
     MASS = 0.5
     VALUE = 5
+    MAX_ANGULAR_VELOCITY = 60
 
     @classmethod
     def load(cls):
@@ -98,7 +135,7 @@ class Collectable(Collidable):
         self.sprite = pyglet.sprite.Sprite(self.img)
         self.velocity = velocity
         self.sprite.rotation = random.random() * 360
-        self.angular_velocity = (random.random() - 0.5) * 60
+        self.angular_velocity = (random.random() - 0.5) * self.MAX_ANGULAR_VELOCITY
         self.tethered_to = None
         self.world.spawn(self)
 
@@ -114,6 +151,9 @@ class Collectable(Collidable):
     def do_collisions(self):
         for o in self.world.collidable_objects:
             if o is not self and o.colliding(self):
+                if isinstance(o, Collector):
+                    continue
+
                 if isinstance(o, Collectable):
                     o.explode()
                 self.explode()
@@ -154,6 +194,7 @@ class Metal(Collectable):
 class Astronaut(Collectable):
     SPRITE_NAME = 'astronaut'
     VALUE = 0
+    MAX_ANGULAR_VELOCITY = 15  # don't make them sick!
 
     alive = True
 
@@ -164,7 +205,8 @@ class Astronaut(Collectable):
             cls.NAMES = [l.strip() for l in pyglet.resource.file('names.txt', 'rU') if l.strip()]
 
     def __init__(self, *args, **kwargs):
-        self.name = random.choice(self.NAMES)
+        self.name = kwargs.pop('name', None) or random.choice(self.NAMES)
+        self.destination = kwargs.pop('destination', None)
         super(Astronaut, self).__init__(*args, **kwargs)
 
     def explode(self):
@@ -289,12 +331,7 @@ class IceAsteroid(Asteroid):
 
 
 def spawn_random_asteroid(world):
-    cls = random.choice([Asteroid] * 10 + [
-        CheeseAsteroid,
-        IceAsteroid,
-        MetalAsteroid,
-    ])
-    cls.random(world)
+    Asteroid.random(world)
 
 
 def spawn_random_collectable(world):
@@ -320,7 +357,8 @@ CLASSES = [
     Metal,
     Ice,
     Cheese,
-    Astronaut
+    Astronaut,
+    CommsStation
 ]
 
 

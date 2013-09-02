@@ -6,7 +6,7 @@ from loader import load_centred
 from wasabi.geom import v
 
 from effects import Explosion
-from labels import FloatyLabel
+from labels import FloatyLabel, GOLD
 
 
 class Collidable(object):
@@ -42,10 +42,11 @@ class MoonBase(Collidable):
             if o.colliding(self):
                 if isinstance(o, Collectable):
                     o.kill()
+                    world.dispatch_event('on_item_collected', self, o)
                     FloatyLabel(
                         world, u'+10€',
                         position=o.position,
-                        colour=(212, 170, 0)
+                        colour=GOLD
                     )
 
 

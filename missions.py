@@ -4,6 +4,8 @@ from pyglet.event import EventDispatcher
 
 
 class Mission(EventDispatcher):
+    """Configure the game to run a mission."""
+
     def setup(self, game):
         """Called to bind the game to the mission.
 

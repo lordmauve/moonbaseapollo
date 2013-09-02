@@ -9,11 +9,11 @@ from wasabi.geom import v
 from wasabi.geom.poly import Rect
 
 from loader import load_centred
-from objects import Moon, Collidable, spawn_random_collectable, spawn_random_asteroid, load_all, Asteroid
+from objects import Moon, Collidable, spawn_random_asteroid, load_all, Asteroid
 from effects import Explosion
-from labels import TrackingLabel, FONT_FILENAME, Signpost
+from labels import TrackingLabel, FONT_FILENAME, Signpost, GREEN
 from hud import HUD
-from missions import MISSIONS
+import missions
 
 
 WIDTH = 1024
@@ -68,7 +68,7 @@ class Player(object):
             self.world,
             self.name,
             follow=self,
-            colour=(0, 128, 0)
+            colour=GREEN
         )
 
     def pick_name(self):
@@ -337,7 +337,9 @@ class World(EventDispatcher):
     def clear_signposts(self):
         del self.signposts[1:]
 
+
 World.register_event_type('on_player_death')
+World.register_event_type('on_item_collected')
 
 
 class Game(object):
@@ -383,10 +385,18 @@ class Game(object):
                 else:
                     player.shoot()
             return EVENT_HANDLED
+        elif symbol == key.F5:
+            reload(missions)
+            self.restart_mission()
+
+    def restart_mission(self, *args):
+        if self.mission:
+            self.mission.finish()
+        self.start_mission()
 
     def start_mission(self, *args):
         # Start mission
-        self.mission = MISSIONS[self.mission_number]
+        self.mission = missions.MISSIONS[self.mission_number]
         self.mission.setup(self)
         self.mission.start()
 

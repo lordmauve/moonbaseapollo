@@ -3,7 +3,7 @@ import pyglet
 from pyglet import gl
 from pyglet.text import Label
 
-from labels import FONT_NAME
+from labels import FONT_NAME, GOLD, CYAN
 
 
 class HUD(object):
@@ -22,7 +22,7 @@ class HUD(object):
             font_size=20,
             anchor_x='right',
             anchor_y='baseline',
-            color=(212, 170, 0, 255),
+            color=GOLD + (255,),
             batch=self.batch
         )
 
@@ -45,7 +45,7 @@ class HUD(object):
             font_size=10,
             anchor_x='left',
             anchor_y='baseline',
-            color=(24, 100, 97, 255),
+            color=CYAN + (255,),
             batch=self.batch
         ))
 

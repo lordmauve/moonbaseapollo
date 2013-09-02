@@ -7,6 +7,13 @@ FONT_FILENAME = 'gun4fc.ttf'
 FONT_NAME = 'Gunship Condensed'
 
 
+# Declare our colour scheme
+WHITE = (255, 255, 255)
+GOLD = (212, 170, 0)
+GREEN = (0, 128, 0)
+CYAN = (24, 100, 97)
+
+
 class FadeyLabel(object):
     FADE_START = 8.0   # seconds
     FADE_END = 10.0  # seconds
@@ -16,7 +23,7 @@ class FadeyLabel(object):
     def __init__(
             self, world, text, position=v(0, 0),
             offset=v(10, -20),
-            colour=(255, 255, 255)):
+            colour=WHITE):
         self.world = world
         self.colour = colour
         self.offset = offset
@@ -51,7 +58,7 @@ class TrackingLabel(FadeyLabel):
     def __init__(
             self, world, text, follow,
             offset=v(10, -20),
-            colour=(255, 255, 255)):
+            colour=WHITE):
         super(TrackingLabel, self).__init__(
             world, text, offset=offset, colour=colour
         )
@@ -97,7 +104,7 @@ class Signpost(object):
                 ('right', 'bottom'): ul.get_transform(flip_x=True, flip_y=True)
             }
 
-    def __init__(self, camera, text, follow, colour=(255, 255, 255, 255)):
+    def __init__(self, camera, text, follow, colour=WHITE):
         self.camera = camera
         self.follow = follow
         self.colour = colour
@@ -105,7 +112,7 @@ class Signpost(object):
         self.label = pyglet.text.Label(
             text,
             font_name=FONT_NAME,
-            color=colour
+            color=colour + (255,)
         )
         self.load()
         self.sprite = pyglet.sprite.Sprite(next(self.pointers.itervalues()))

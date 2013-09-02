@@ -4,7 +4,7 @@ from functools import wraps, partial
 from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
-from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE
+from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
 import hud
 
 
@@ -182,6 +182,10 @@ class Mission(Script):
     def on_astronaut_death(self, astronaut):
         self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
         self.dispatch_event('on_failure')
+
+    def on_failure(self):
+        self.game.say("{control}: Mission failed! Try again.", colour=RED)
+        self.start()
 
     def finish(self):
         pyglet.clock.unschedule(self.next)

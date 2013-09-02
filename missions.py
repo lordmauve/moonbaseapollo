@@ -63,6 +63,7 @@ class Mission(Script):
         self.tractored_messages = {}
         self.region_message = None
         self.waiting_enter_region = False
+        self.need_class = None
 
     def setup(self, game):
         """Called to bind the game to the mission.

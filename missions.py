@@ -90,13 +90,15 @@ class Mission(Script):
         self.say("New mission: " + title, colour=GREEN, delay=0)
 
     @script
-    def spawn(self, class_name, position, signpost=None, id=None, delay=0):
+    def spawn(self, class_name, position, signpost=None, id=None, delay=0, **kwargs):
         module, clsname = class_name.rsplit('.', 1)
         __import__(module)
         cls = getattr(sys.modules[module], clsname)
 
-        inst = cls(self.game.world, position=position)
+        inst = cls(self.game.world, position=position, **kwargs)
         if signpost:
+            if not isinstance(signpost, basestring):
+                signpost = inst.name
             self.game.world.add_signpost(
                 Signpost(self.game.world.camera, signpost, inst, GOLD)
             )
@@ -107,6 +109,7 @@ class Mission(Script):
             )
 
         if id:
+            inst.id = id
             self.extra_params[id] = inst
 
         self.wait(delay)
@@ -230,10 +233,12 @@ m.goal("Collect 2 cheeses")
 m.player_must_collect('objects.Cheese', 2)
 
 
+STATION_POS = v(1000, 3000)
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 300)
-m.spawn('objects.Astronaut', v(160, 160), id='astronaut')
+m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, destination='comm-station-4')
 m.say("{control}: This is {astronaut.name}.")
+m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
-m.player_must_enter_region(CHEESE_POS, 300)
+m.player_must_collect('objects.Astronaut')

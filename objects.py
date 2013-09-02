@@ -42,12 +42,14 @@ class MoonBase(Collidable):
             if o.colliding(self):
                 if isinstance(o, Collectable):
                     o.kill()
+                    print 'raise on_item_collected'
                     world.dispatch_event('on_item_collected', self, o)
                     FloatyLabel(
-                        world, u'+10€',
+                        world, u'+%d€' % o.VALUE,
                         position=o.position,
                         colour=GOLD
                     )
+                    return
 
 
 class Moon(Collidable):
@@ -83,6 +85,7 @@ class Collectable(Collidable):
     RADIUS = 9.0
     SPRITE_NAME = None  # Subclasses should set this
     MASS = 0.5
+    VALUE = 5
 
     @classmethod
     def load(cls):
@@ -135,14 +138,17 @@ class Collectable(Collidable):
 
 class Cheese(Collectable):
     SPRITE_NAME = 'cheese-fragment'
+    VALUE = 20
 
 
 class Ice(Collectable):
     SPRITE_NAME = 'ice-fragment'
+    VALUE = 10
 
 
 class Metal(Collectable):
     SPRITE_NAME = 'metal-fragment'
+    VALUE = 30
 
 
 class Asteroid(Collidable):

@@ -71,6 +71,7 @@ class Player(object):
         self.MASS = self.ship.mass
         self.world.spawn(self)
         self.tethered = None
+        self.money = 0
 
         self.pick_name()
 
@@ -298,6 +299,7 @@ class World(EventDispatcher):
             moon.moonbase
         )]
         self.spawn_player()
+        self.hud.set_money(self.player.money)
 
     def spawn(self, o):
         self.objects.append(o)
@@ -358,11 +360,13 @@ class World(EventDispatcher):
     def clear_signposts(self):
         del self.signposts[1:]
 
+    def on_item_collected(self, collector, item):
+        self.player.money += item.VALUE
+        self.hud.set_money(self.player.money)
+
     def set_target_region(self, position, radius):
         """Set a circular target region.
-
         When entering this region, the on_region_entered event will be fired.
-
         """
         self.target_region = (position, radius * radius)
 

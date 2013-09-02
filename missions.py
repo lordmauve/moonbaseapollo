@@ -15,11 +15,7 @@ class Mission(EventDispatcher):
 
     def say(self, message):
         """Print a message."""
-        msg = message.format(
-            name=self.world.player.name,
-            control='Moonbase Alpha'
-        )
-        self.world.hud.set_message(msg)
+        self.game.say(message)
 
     def start(self):
         """Called when the mission starts.

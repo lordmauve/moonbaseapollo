@@ -363,6 +363,13 @@ class Game(object):
         # Wait a couple of seconds then respawn the player
         pyglet.clock.schedule_once(self.respawn, 2)
 
+    def say(self, message):
+        msg = message.format(
+            name=self.world.player.name,
+            control='Moonbase Alpha'
+        )
+        self.world.hud.set_message(msg)
+
     def respawn(self, *args):
         self.say("{control}: Please treat this one more carefully!")
         self.world.spawn_player()

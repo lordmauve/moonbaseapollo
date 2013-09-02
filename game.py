@@ -25,6 +25,7 @@ FPS = 30
 pyglet.resource.path += [
     'sprites/',
     'fonts/',
+    'data/',
 ]
 pyglet.resource.reindex()
 pyglet.resource.add_font(FONT_FILENAME)
@@ -379,6 +380,7 @@ World.register_event_type('on_item_collected')
 World.register_event_type('on_object_shot')
 World.register_event_type('on_object_tractored')
 World.register_event_type('on_region_entered')
+World.register_event_type('on_astronaut_death')
 
 
 class Game(object):
@@ -405,10 +407,13 @@ class Game(object):
         pyglet.clock.schedule_once(self.respawn, 2)
 
     def say(self, message, colour=CYAN):
-        msg = message.format(
+        params = dict(
             name=self.world.player.name,
             control='Moonbase Alpha'
         )
+        if self.mission:
+            params.update(self.mission.extra_params)
+        msg = message.format(**params)
         self.world.hud.append_message(msg, colour=colour)
 
     def respawn(self, *args):

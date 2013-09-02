@@ -1,9 +1,10 @@
 import sys
+import random
 from functools import wraps, partial
 from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
-from labels import Signpost, GOLD, GREEN, WHITE
+from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE
 import hud
 
 
@@ -64,6 +65,7 @@ class Mission(Script):
         self.region_message = None
         self.waiting_enter_region = False
         self.need_class = None
+        self.extra_params = {}
 
     def setup(self, game):
         """Called to bind the game to the mission.
@@ -75,7 +77,7 @@ class Mission(Script):
         self.world = game.world
         self.world.push_handlers(
             self.on_object_shot, self.on_item_collected, self.on_object_tractored,
-            self.on_region_entered
+            self.on_region_entered, self.on_astronaut_death
         )
 
     @script
@@ -88,7 +90,7 @@ class Mission(Script):
         self.say("New mission: " + title, colour=GREEN, delay=0)
 
     @script
-    def spawn(self, class_name, position, signpost=None, delay=0):
+    def spawn(self, class_name, position, signpost=None, id=None, delay=0):
         module, clsname = class_name.rsplit('.', 1)
         __import__(module)
         cls = getattr(sys.modules[module], clsname)
@@ -98,6 +100,15 @@ class Mission(Script):
             self.game.world.add_signpost(
                 Signpost(self.game.world.camera, signpost, inst, GOLD)
             )
+
+        if getattr(inst, 'name', None):
+            self.world.spawn(
+                TrackingLabel(self.world, inst.name, follow=inst)
+            )
+
+        if id:
+            self.extra_params[id] = inst
+
         self.wait(delay)
 
     @script
@@ -168,8 +179,13 @@ class Mission(Script):
         else:
             self.game.say(message, colour=colour)
 
+    def on_astronaut_death(self, astronaut):
+        self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
+        self.dispatch_event('on_failure')
+
     def finish(self):
         pyglet.clock.unschedule(self.next)
+        self.extra_params = {}
         self.world.clear_target_region()
         self.world.pop_handlers()
         self.world.clear_signposts()
@@ -212,3 +228,12 @@ m.say("{control}: Cheese! Well I never!")
 m.say("{control}: We need enough for lunch.", delay=0)
 m.goal("Collect 2 cheeses")
 m.player_must_collect('objects.Cheese', 2)
+
+
+m = Mission('Transport the astronaut')
+m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
+m.player_must_enter_region(v(0, 0), 300)
+m.spawn('objects.Astronaut', v(160, 160), id='astronaut')
+m.say("{control}: This is {astronaut.name}.")
+m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
+m.player_must_enter_region(CHEESE_POS, 300)

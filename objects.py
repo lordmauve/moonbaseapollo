@@ -151,6 +151,31 @@ class Metal(Collectable):
     VALUE = 30
 
 
+class Astronaut(Collectable):
+    SPRITE_NAME = 'astronaut'
+    VALUE = 0
+
+    alive = True
+
+    @classmethod
+    def load(cls):
+        super(Astronaut, cls).load()
+        if not hasattr(cls, 'NAMES'):
+            cls.NAMES = [l.strip() for l in pyglet.resource.file('names.txt', 'rU') if l.strip()]
+
+    def __init__(self, *args, **kwargs):
+        self.name = random.choice(self.NAMES)
+        super(Astronaut, self).__init__(*args, **kwargs)
+
+    def explode(self):
+        super(Astronaut, self).explode()
+        self.world.dispatch_event('on_astronaut_death', self)
+
+    def kill(self):
+        self.alive = False
+        super(Astronaut, self).kill()
+
+
 class Asteroid(Collidable):
     RADIUS = 32
     EJECT_SPEED = 50
@@ -295,6 +320,7 @@ CLASSES = [
     Metal,
     Ice,
     Cheese,
+    Astronaut
 ]
 
 

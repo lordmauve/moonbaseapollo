@@ -422,11 +422,17 @@ World.register_event_type('on_astronaut_death')
 
 
 class Game(object):
-    def __init__(self):
-        self.window = pyglet.window.Window(
-            width=WIDTH,
-            height=HEIGHT
-        )
+    def __init__(self, windowed=True, mission=1):
+        global WIDTH, HEIGHT
+        if windowed:
+            self.window = pyglet.window.Window(
+                width=WIDTH,
+                height=HEIGHT
+            )
+        else:
+            self.window = pyglet.window.Window(fullscreen=True)
+            WIDTH = self.window.width
+            HEIGHT = self.window.height
         self.keyboard = key.KeyStateHandler()
 
         # load the sprites for objects
@@ -437,7 +443,7 @@ class Game(object):
         self.world = World(self.keyboard)
         self.world.set_handler('on_player_death', self.on_player_death)
         self.mission = None
-        self.mission_number = 0
+        self.mission_number = mission - 1
         self.start()
 
     def on_player_death(self):
@@ -559,4 +565,14 @@ class Game(object):
 
 
 if __name__ == '__main__':
-    game = Game()
+    from optparse import OptionParser
+    parser = OptionParser('%prog [-f] [--mission <num>]')
+    parser.add_option('-f', '--fullscreen', action='store_true', help='Start in full screen mode')
+    parser.add_option('--mission', action='store', type='int', help='Mission to start at.', default=1)
+
+    options, args = parser.parse_args()
+
+    game = Game(
+        windowed=not options.fullscreen,
+        mission=options.mission
+    )

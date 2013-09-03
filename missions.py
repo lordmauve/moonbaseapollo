@@ -79,6 +79,7 @@ class Mission(Script):
         self.waiting_enter_region = False
         self.need_class = None
         self.critical_objects = []
+        self.target_objects = []
         self.extra_params = {}
         self.persistent_items = WeakSet()  # items to be killed if we restart
         self.nonpersistent_items = WeakSet()  # items to be killed at mission end
@@ -192,12 +193,17 @@ class Mission(Script):
     @script
     def fail_if_object_destroyed(self, id):
         self.critical_objects.append(id)
+        self.next()
 
     @script
     def player_must_enter_region(self, position, radius):
         """Add a one-off message if the player enters a particular region."""
         self.waiting_enter_region = True
         self.world.set_target_region(position, radius)
+
+    @script
+    def player_must_destroy(self, id):
+        self.target_objects.append(id)
 
     @script
     def set_time_limit(self, t):
@@ -257,9 +263,17 @@ class Mission(Script):
             self.game.say(message, colour=colour)
 
     def on_object_destroyed(self, item):
+        if not hasattr(item, 'id'):
+            return
+
         if item.id in self.critical_objects:
             self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
             self.dispatch_event("on_failure")
+        elif item.id in self.target_objects:
+            self.target_objects.pop(self.target_objects.index(item.id))
+            if len(self.target_objects) == 0:
+                self.game.say("{control}: All targets destroyed!")
+                self.next()
 
     def on_object_tractored(self, item):
         try:
@@ -336,23 +350,24 @@ m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 500)
 m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
-m.fail_if_object_destroyed(id='astronaut')
-m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
 m.say("{control}: This is {astronaut.name}.")
 m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
+m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
+m.fail_if_object_destroyed(id='astronaut')
 m.player_must_collect('objects.Astronaut')
 m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 
 # TODO!
-#m = Mission('Defend the station')
-#m.spawn('objects.Asteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
-#m.say('{control}: Emergency, {name}! An asteroid is heading for Comm Station 4')
-#m.goal('Destroy the asteroid')
-#m.player_must_destroy('asteroid')
-
+m = Mission('Defend the station')
+m.spawn('objects.Asteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
+m.say('{control}: Emergency, {name}! An asteroid is heading for Comm Station 4')
+m.goal('Destroy the asteroid')
+m.fail_if_object_destroyed('comm-station-4')
+m.player_must_destroy('asteroid')
+m.say('{control}: Thanks. Comm Station 4 is safe now.')
 
 m = Mission('Collect metal')
 m.say("{control}: {name}, our fabrication facility is just about ready.")

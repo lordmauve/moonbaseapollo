@@ -362,6 +362,7 @@ class Asteroid(Collidable):
         if self.RADIUS < 10:
             self.world.kill(self)
             cls(self.world, self.position)
+            self.world.dispatch_event('on_object_destroyed', self)
 
     def fragment(self, position):
         """Eject a fragment given a bullet impact at position."""

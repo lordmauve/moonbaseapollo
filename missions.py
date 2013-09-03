@@ -257,8 +257,9 @@ class Mission(Script):
             self.game.say(message, colour=colour)
 
     def on_object_destroyed(self, item):
-        self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
-        self.dispatch_event("on_failure")
+        if item.id in self.critical_objects:
+            self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
+            self.dispatch_event("on_failure")
 
     def on_object_tractored(self, item):
         try:
@@ -335,12 +336,12 @@ m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 300)
 m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
+m.fail_if_object_destroyed(id='astronaut')
 m.say("{control}: This is {astronaut.name}.")
 m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
-m.fail_if_object_destroyed(id='astronaut')
 m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 

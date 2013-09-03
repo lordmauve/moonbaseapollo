@@ -226,6 +226,7 @@ class Collectable(Collidable):
         """Explode the object."""
         Explosion(self.world, self.position)
         self.kill()
+        self.world.dispatch_event('on_object_destroyed', self)
 
     def kill(self):
         """Remove the object from the world."""

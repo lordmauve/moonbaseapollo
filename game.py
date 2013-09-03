@@ -412,6 +412,7 @@ class World(EventDispatcher):
 World.register_event_type('on_player_death')
 World.register_event_type('on_item_collected')
 World.register_event_type('on_object_shot')
+World.register_event_type('on_object_destroyed')
 World.register_event_type('on_object_tractored')
 World.register_event_type('on_region_entered')
 World.register_event_type('on_astronaut_death')

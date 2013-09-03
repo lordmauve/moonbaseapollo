@@ -78,6 +78,7 @@ class Mission(Script):
         self.region_message = None
         self.waiting_enter_region = False
         self.need_class = None
+        self.critical_objects = []
         self.extra_params = {}
         self.persistent_items = WeakSet()  # items to be killed if we restart
         self.nonpersistent_items = WeakSet()  # items to be killed at mission end
@@ -91,8 +92,9 @@ class Mission(Script):
         self.game = game
         self.world = game.world
         self.world.push_handlers(
-            self.on_object_shot, self.on_item_collected, self.on_object_tractored,
-            self.on_region_entered, self.on_astronaut_death
+            self.on_object_shot, self.on_item_collected,
+            self.on_object_tractored, self.on_region_entered,
+            self.on_astronaut_death, self.on_object_destroyed,
         )
         self.hud = self.game.world.hud
 
@@ -188,6 +190,10 @@ class Mission(Script):
         self.next()
 
     @script
+    def fail_if_object_destroyed(self, id):
+        self.critical_objects.append(id)
+
+    @script
     def player_must_enter_region(self, position, radius):
         """Add a one-off message if the player enters a particular region."""
         self.waiting_enter_region = True
@@ -250,6 +256,10 @@ class Mission(Script):
         else:
             self.game.say(message, colour=colour)
 
+    def on_object_destroyed(self, item):
+        self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
+        self.dispatch_event("on_failure")
+
     def on_object_tractored(self, item):
         try:
             message, colour = self.tractored_messages.pop(get_class_name(item))
@@ -260,7 +270,7 @@ class Mission(Script):
 
     def on_astronaut_death(self, astronaut):
         self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
-        self.dispatch_event('on_failure')
+        # self.dispatch_event('on_failure')
 
     def on_failure(self):
         self.game.say("{control}: Mission failed! Try again.", colour=RED)
@@ -330,6 +340,7 @@ m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
+m.fail_if_object_destroyed(id='astronaut')
 m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 

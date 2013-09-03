@@ -11,7 +11,7 @@ from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
 
 from loader import load_centred
-from objects import Collider, Moon, Collidable, spawn_random_asteroids, load_all, Asteroid, Collector
+from objects import Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all, Asteroid, Collector
 from effects import Explosion
 from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN
 from hud import HUD
@@ -150,8 +150,15 @@ class Player(Collider):
         self.do_collisions()
 
     def do_collisions(self):
-        if any(self.iter_collisions()):
-            self.explode()
+        for o in self.iter_collisions():
+            if isinstance(o, Collectable):
+                if not self.tethered:
+                    self.attach(o)
+            else:
+                self.explode()
+
+            # Process only one collision
+            break
 
     def explode(self):
         Explosion(self.world, self.position)

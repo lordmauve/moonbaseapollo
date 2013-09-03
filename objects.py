@@ -78,6 +78,7 @@ class Collidable(Collider):
 
 class Collector(Collidable):
     id = None
+    COLMASK = 0x10
     COLGROUPS = 0x2
 
     def can_collect(self, o):
@@ -181,7 +182,8 @@ class Collectable(Collidable):
 
     # don't collide with the collector
     # (because the collector collides with us)
-    COLMASK = 0xfffffffd
+    COLMASK = 0xfffffff9
+    COLGROUPS = 0x10
 
     @classmethod
     def load(cls):
@@ -236,11 +238,6 @@ class Collectable(Collidable):
         if self.tethered_to:
             self.tethered_to.release()
         self.world.kill(self)
-
-    def on_collide(self, player):
-        if player.tethered:
-            return
-        player.attach(self)
 
 
 class Cheese(Collectable):

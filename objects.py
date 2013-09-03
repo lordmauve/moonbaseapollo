@@ -114,8 +114,8 @@ class CommsStation(Collector):
             cls.img.anchor_y = 40
 
     def __init__(self, world, position):
-        self.position = position
         self.world = world
+        self.position = position
         self.sprite = pyglet.sprite.Sprite(self.img)
         self.sprite.position = self.position
         self.world.spawn(self)

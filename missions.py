@@ -6,6 +6,7 @@ from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
 from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
+from weakref import WeakSet
 import hud
 
 
@@ -78,6 +79,8 @@ class Mission(Script):
         self.waiting_enter_region = False
         self.need_class = None
         self.extra_params = {}
+        self.persistent_items = WeakSet()  # items to be killed if we restart
+        self.nonpersistent_items = WeakSet()  # items to be killed at mission end
 
     def setup(self, game):
         """Called to bind the game to the mission.
@@ -93,6 +96,26 @@ class Mission(Script):
         )
         self.hud = self.game.world.hud
 
+    def clear_items(self, nonpersistent_only=True):
+        items = list(self.nonpersistent_items)
+        self.nonpersistent_items.clear()
+        if not nonpersistent_only:
+            items.extend(self.persistent_items)
+            self.persistent_items.clear()
+        for o in items:
+            try:
+                o.kill()
+            except Exception:
+                # doesn't matter if it's already dead
+                try:
+                    self.world.kill(o)
+                except Exception:
+                    pass
+
+    def restart(self):
+        self.clear_items(False)
+        self.start()
+
     @script
     def say(self, message, colour=hud.DEFAULT_COLOUR, delay=3):
         """Record a message that will be shown on the message window."""
@@ -103,7 +126,7 @@ class Mission(Script):
         self.say("New mission: " + title, colour=GREEN, delay=0)
 
     @script
-    def spawn(self, class_name, position, signpost=None, id=None, delay=0, **kwargs):
+    def spawn(self, class_name, position, signpost=None, id=None, persistent=True, delay=0, **kwargs):
         module, clsname = class_name.rsplit('.', 1)
         __import__(module)
         cls = getattr(sys.modules[module], clsname)
@@ -116,14 +139,21 @@ class Mission(Script):
                 Signpost(self.game.world.camera, signpost, inst, GOLD)
             )
 
+        label = None
         if getattr(inst, 'name', None):
-            self.world.spawn(
-                TrackingLabel(self.world, inst.name, follow=inst)
-            )
+            label = TrackingLabel(self.world, inst.name, follow=inst)
+            self.world.spawn(label)
 
         if id:
             inst.id = id
             self.extra_params[id] = inst
+
+        if persistent:
+            self.persistent_items.add(inst)
+        else:
+            self.nonpersistent_items.add(inst)
+        if label:
+            self.nonpersistent_items.add(label)
 
         self.wait(delay)
 
@@ -234,18 +264,25 @@ class Mission(Script):
 
     def on_failure(self):
         self.game.say("{control}: Mission failed! Try again.", colour=RED)
-        self.start()
+        self.restart()
 
     def finish(self):
         pyglet.clock.unschedule(self.next)
+        self.clear_items()
         self.extra_params = {}
         self.world.clear_target_region()
         self.world.pop_handlers()
         self.world.clear_signposts()
 
+    def rewind(self):
+        """Finish and revert state to before the mission."""
+        self.finish()
+        self.clear_items(False)
+
     def skip(self):
         """Skip the mission, but set any persistent state."""
         self.start()
+        # TODO
         self.finish()
 
 
@@ -287,7 +324,7 @@ STATION_POS = v(1000, 3000)
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 300)
-m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, destination='comm-station-4')
+m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
 m.say("{control}: This is {astronaut.name}.")
 m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")

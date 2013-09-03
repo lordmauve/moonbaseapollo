@@ -120,6 +120,10 @@ class Signpost(object):
         self.sprite.color = colour[:3]
 
     def draw(self):
+        if not self.follow.alive:
+            # TODO: kill properly
+            return
+
         pos = self.follow.position
         vp = self.camera.get_viewport()
         if vp.contains(pos):

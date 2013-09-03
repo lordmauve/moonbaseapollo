@@ -467,15 +467,21 @@ class Game(object):
         elif symbol == key.F4:
             self.previous_mission()
         elif symbol == key.F5:
-            try:
-                import missions
-                reload(missions)
-            except Exception:
-                import traceback
-                traceback.print_exc()
-            else:
-                print 'Missions reloaded'
-                self.restart_mission()
+            self.reload_missions()
+
+    def reload_missions(self):
+        if self.mission:
+            with log_exceptions():
+                self.mission.rewind()
+        try:
+            import missions
+            reload(missions)
+        except Exception:
+            import traceback
+            traceback.print_exc()
+        else:
+            print 'Missions reloaded'
+            self.restart_mission()
 
     def restart_mission(self, *args):
         if self.mission:
@@ -520,7 +526,7 @@ class Game(object):
         print "Skipping to previous mission"
         if self.mission:
             with log_exceptions():
-                self.mission.finish()
+                self.mission.rewind()
         self.start_mission()
 
     def start(self):

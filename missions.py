@@ -330,6 +330,7 @@ m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
+m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 
 # TODO!
@@ -353,7 +354,7 @@ m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
 m = Mission('Retrieve supply drop')
 m.say('{control}: {name}, we are expecting a resupply of frozen food from Earth.', delay=1.5)
 m.say('{control}: We need you to collect it and guide it through the asteroid belt.')
-m.spawn('objects.FrozenFood', v(-2000, -300), velocity=v(30, 0), signpost='Frozen Food Supplies')
+m.spawn('objects.FrozenFood', v(-2500, -300), velocity=v(30, 0), signpost='Frozen Food Supplies')
 m.player_must_collect('objects.FrozenFood')
 m.say('{control}: Delicious! They gave us a flake too!')
 

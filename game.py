@@ -25,6 +25,9 @@ HEIGHT = 600
 
 FPS = 30
 
+# Reducing this number makes the game much easier
+NUM_ASTEROIDS = 700
+
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
 
@@ -334,7 +337,7 @@ class World(EventDispatcher):
             self.non_collidable_objects.remove(o)
 
     def generate_asteroids(self):
-        spawn_random_asteroids(self, 800)
+        spawn_random_asteroids(self, NUM_ASTEROIDS)
 
     def setup_projection_matrix(self):
         gl.glMatrixMode(gl.GL_PROJECTION)

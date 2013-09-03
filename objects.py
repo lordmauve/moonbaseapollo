@@ -314,7 +314,7 @@ class Asteroid(Collidable):
         cls.SPRITES = [load_centred(name) for name in cls.SPRITE_NAMES]
 
     @classmethod
-    def random(cls, world, random=random):
+    def generate(cls, world, random=random):
         while True:
             dist = random.normalvariate(2500, 1000)
             if dist > 500:
@@ -322,9 +322,9 @@ class Asteroid(Collidable):
                 break
         angle = random.random() * 360
         pos = v(0, dist).rotated(angle)
-        return cls(world, pos)
+        return cls(world, pos, random=random)
 
-    def __init__(self, world, position, velocity=v(0, 0), img=None):
+    def __init__(self, world, position, velocity=v(0, 0), random=random):
         self.world = world
         img, self.RADIUS = random.choice(zip(self.SPRITES, self.RADIUSES))
         self.position = position
@@ -415,9 +415,9 @@ class IceAsteroid(Asteroid):
 
 def spawn_random_asteroids(world, num):
     r = random.Random()
-    r.seed(0)
+    r.seed(1)
     for i in xrange(num):
-        Asteroid.random(world, random=r)
+        Asteroid.generate(world, random=r)
 
 
 def spawn_random_collectable(world):

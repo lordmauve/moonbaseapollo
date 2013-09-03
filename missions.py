@@ -320,17 +320,18 @@ m.goal("Collect 2 cheeses")
 m.player_must_collect('objects.Cheese', 2)
 
 
-STATION_POS = v(1000, 3000)
+STATION_POS = v(700, 4600)
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
-m.player_must_enter_region(v(0, 0), 300)
+m.player_must_enter_region(v(0, 0), 500)
 m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
+m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
 m.say("{control}: This is {astronaut.name}.")
 m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
-m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
+m.say("{astronaut.name}: Thanks. I'm going to go be sick now.")
 
 
 # TODO!

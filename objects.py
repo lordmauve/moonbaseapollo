@@ -288,12 +288,25 @@ class Astronaut(Collectable):
 
 
 class Asteroid(Collidable):
-    RADIUS = 32
     EJECT_SPEED = 50
     EJECT_RANDOMNESS = 30
 
     SPRITE_NAMES = [
-        'asteroid'
+        'asteroid-s1',
+        'asteroid-s2',
+        'asteroid-m1',
+        'asteroid-m2',
+        'asteroid-l1',
+        'asteroid-l2',
+    ]
+
+    RADIUSES = [
+        32,
+        32,
+        46,
+        46,
+        64,
+        64
     ]
 
     @classmethod
@@ -313,9 +326,10 @@ class Asteroid(Collidable):
 
     def __init__(self, world, position, velocity=v(0, 0), img=None):
         self.world = world
+        img, self.RADIUS = random.choice(zip(self.SPRITES, self.RADIUSES))
         self.position = position
         self.velocity = velocity
-        self.sprite = pyglet.sprite.Sprite(img or random.choice(self.SPRITES))
+        self.sprite = pyglet.sprite.Sprite(img)
         # self.sprite.scale = scale
         self.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * 60
@@ -365,7 +379,7 @@ class Asteroid(Collidable):
 
 
 class AsteroidFragment(Asteroid):
-    RADIUS = 8
+    RADIUSES = [10]
 
     SPRITE_NAMES = [
         'asteroid-fragment',
@@ -376,27 +390,24 @@ class AsteroidFragment(Asteroid):
 
 
 class CheeseAsteroid(Asteroid):
-    SPRITE_NAMES = [
-        'cheese',
-    ]
+    RADIUSES = [32]
+    SPRITE_NAMES = ['cheese']
 
     def fragment_class(self):
         return Cheese
 
 
 class MetalAsteroid(Asteroid):
-    SPRITE_NAMES = [
-        'metal',
-    ]
+    RADIUSES = [32]
+    SPRITE_NAMES = ['metal']
 
     def fragment_class(self):
         return Metal
 
 
 class IceAsteroid(Asteroid):
-    SPRITE_NAMES = [
-        'ice',
-    ]
+    RADIUSES = [32]
+    SPRITE_NAMES = ['ice']
 
     def fragment_class(self):
         return Ice

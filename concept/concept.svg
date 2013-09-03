@@ -250,11 +250,11 @@
      pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="1"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1"
-     inkscape:cx="-306.00224"
-     inkscape:cy="94.203138"
+     inkscape:zoom="2"
+     inkscape:cx="-263.99269"
+     inkscape:cy="13.58637"
      inkscape:document-units="px"
      inkscape:current-layer="layer2"
      showgrid="false"
@@ -2484,7 +2484,10 @@
     </g>
     <g
        id="g6008"
-       transform="translate(-62,-7)">
+       transform="translate(-62,-7)"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/medical-supplies.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
       <rect
          ry="1.5753424"
          rx="1.7703947"
@@ -2516,7 +2519,10 @@
     </g>
     <g
        id="g6049"
-       transform="translate(-11,8)">
+       transform="translate(-11,8)"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/frozen-food.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
       <path
          sodipodi:nodetypes="cssscssssssc"
          inkscape:connector-curvature="0"
@@ -3127,5 +3133,63 @@
          id="tspan6027"
          x="-267.19128"
          y="127.42603">FROZEN FOOD SUPPLIES</tspan></text>
+    <g
+       id="g6117"
+       inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/coin.png"
+       inkscape:export-xdpi="90"
+       inkscape:export-ydpi="90">
+      <path
+         d="m -366,182.08093 a 9,9 0 1 1 -18,0 9,9 0 1 1 18,0 z"
+         sodipodi:ry="9"
+         sodipodi:rx="9"
+         sodipodi:cy="182.08093"
+         sodipodi:cx="-375"
+         id="path6060"
+         style="color:#000000;fill:#d4aa00;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:0.50000000000000000;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none;stroke-dashoffset:0;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         sodipodi:type="arc" />
+      <path
+         sodipodi:open="true"
+         sodipodi:end="8.5939565"
+         sodipodi:start="5.3981185"
+         transform="matrix(0.86939904,0,0,0.86845618,-49.252197,23.760465)"
+         sodipodi:type="arc"
+         style="color:#000000;fill:none;stroke:#ffdd53;stroke-width:1.1508441;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+         id="path6081"
+         sodipodi:cx="-375"
+         sodipodi:cy="182.08093"
+         sodipodi:rx="9"
+         sodipodi:ry="9"
+         d="m -369.30086,175.11532 a 9,9 0 1 1 -11.76756,13.61198" />
+      <g
+         transform="matrix(0.62739884,0,0,0.62739884,-120.1789,68.51566)"
+         id="text4188-4"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#9a7b00;fill-opacity:1;stroke:none;display:inline;font-family:Gunship Condensed;-inkscape-font-specification:'Gunship Condensed, Condensed'">
+        <path
+           style="fill:#9a7b00;fill-opacity:1"
+           inkscape:connector-curvature="0"
+           id="path6107"
+           d="m -397.69901,187.82698 -5.28,-12.78 -3.04,0 -5.28,12.78 13.6,0" />
+      </g>
+      <g
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#ffdd53;fill-opacity:1;stroke:none;display:inline;font-family:Gunship Condensed;-inkscape-font-specification:'Gunship Condensed, Condensed'"
+         id="g6109"
+         transform="matrix(0.62739884,0,0,0.62739884,-121.90521,66.90208)">
+        <path
+           d="m -398.59741,187.6473 -5.28,-12.78 -3.04,0 -5.28,12.78 13.6,0"
+           id="path6111"
+           inkscape:connector-curvature="0"
+           style="fill:#ffdd53;fill-opacity:1" />
+      </g>
+      <g
+         transform="matrix(0.62739884,0,0,0.62739884,-121.1161,67.691188)"
+         id="g6113"
+         style="font-size:20px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#d4aa00;fill-opacity:1;stroke:none;display:inline;font-family:Gunship Condensed;-inkscape-font-specification:'Gunship Condensed, Condensed'">
+        <path
+           style="fill:#d4aa00;fill-opacity:1"
+           inkscape:connector-curvature="0"
+           id="path6115"
+           d="m -398.59741,187.6473 -5.28,-12.78 -3.04,0 -5.28,12.78 13.6,0" />
+      </g>
+    </g>
   </g>
 </svg>

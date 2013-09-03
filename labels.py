@@ -1,3 +1,4 @@
+# coding: utf8
 import math
 import pyglet
 from wasabi.geom import v
@@ -88,6 +89,14 @@ class FloatyLabel(FadeyLabel):
     def update(self, ts):
         self.label.y += self.VELOCITY * ts
         super(FloatyLabel, self).update(ts)
+
+
+def money_label(world, position, value):
+    FloatyLabel(
+        world, u'+%d€' % value,
+        position=position,
+        colour=GOLD
+    )
 
 
 class Signpost(object):

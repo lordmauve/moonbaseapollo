@@ -89,12 +89,6 @@ class Collector(Collidable):
     def collect(self, o):
         o.kill()
         self.world.dispatch_event('on_item_collected', self, o)
-        if o.VALUE:
-            FloatyLabel(
-                self.world, u'+%d€' % o.VALUE,
-                position=o.position,
-                colour=GOLD
-            )
 
     def do_collisions(self):
         for o in self.iter_collisions():
@@ -255,6 +249,11 @@ class Metal(Collectable):
     VALUE = 30
 
 
+class Coin(Collectable):
+    SPRITE_NAME = 'coin'
+    VALUE = 5
+
+
 class FrozenFood(Collectable):
     SPRITE_NAME = 'frozen-food'
     VALUE = 35
@@ -332,6 +331,8 @@ class Asteroid(Collidable):
         self.rotation += self.angular_velocity * ts
 
     def fragment_class(self):
+        if random.randint(0, 10) == 0:
+            return Coin
         return AsteroidFragment
 
     def spawn_fragment(self, position, velocity=v(0, 0)):
@@ -433,7 +434,8 @@ CLASSES = [
     Cheese,
     Astronaut,
     CommsStation,
-    FrozenFood
+    FrozenFood,
+    Coin
 ]
 
 

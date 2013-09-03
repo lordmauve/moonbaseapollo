@@ -11,9 +11,12 @@ from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
 
 from loader import load_centred
-from objects import Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all, Asteroid, Collector
+from objects import (
+    Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
+    Asteroid, Coin
+)
 from effects import Explosion
-from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN
+from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label
 from hud import HUD
 
 
@@ -151,7 +154,10 @@ class Player(Collider):
 
     def do_collisions(self):
         for o in self.iter_collisions():
-            if isinstance(o, Collectable):
+            if isinstance(o, Coin):
+                self.world.on_item_collected(self, o)
+                o.kill()
+            elif isinstance(o, Collectable):
                 if not self.tethered:
                     self.attach(o)
             else:
@@ -388,8 +394,10 @@ class World(EventDispatcher):
         del self.signposts[1:]
 
     def on_item_collected(self, collector, item):
-        self.money += item.VALUE
-        self.hud.set_money(self.money)
+        if item.VALUE:
+            money_label(self, item.position, item.VALUE)
+            self.money += item.VALUE
+            self.hud.set_money(self.money)
 
     def set_target_region(self, position, radius):
         """Set a circular target region.

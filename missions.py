@@ -257,8 +257,9 @@ class Mission(Script):
             self.game.say(message, colour=colour)
 
     def on_object_destroyed(self, item):
-        self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
-        self.dispatch_event("on_failure")
+        if item.id in self.critical_objects:
+            self.game.say("{control}: Mission critical object was destroyed!", colour=RED)
+            self.dispatch_event("on_failure")
 
     def on_object_tractored(self, item):
         try:

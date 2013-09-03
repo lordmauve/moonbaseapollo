@@ -355,7 +355,7 @@ m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
 m = Mission('Retrieve supply drop')
 m.say('{control}: {name}, we are expecting a resupply of frozen food from Earth.', delay=1.5)
 m.say('{control}: We need you to collect it and guide it through the asteroid belt.')
-m.spawn('objects.FrozenFood', v(-2500, -300), velocity=v(30, 0), signpost='Frozen Food Supplies')
+m.spawn('objects.FrozenFood', v(-4500, 300), velocity=v(30, 0), signpost='Frozen Food Supplies')
 m.player_must_collect('objects.FrozenFood')
 m.say('{control}: Delicious! They gave us a flake too!')
 

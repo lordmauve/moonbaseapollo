@@ -18,13 +18,14 @@ class Collidable(object):
     wasabi.geom.vector.Vector.
 
     Collidable objects maintain their references in the world's spatial hash.
-    We use "fat bounds" with error^2 counting to reduce the frequency with which
+    We use "fat bounds" with error tracking to reduce the frequency with which
     we have to move objects.
 
     """
     _position = v(0, 0)
-    _position_error = float('inf')
+    _bounds_pos = v(float('inf'), float('inf'))
     _fat_bounds = None
+    FATNESS = 50  # how much to offset by; increase this for fast-moving objects
     alive = True
 
     @property
@@ -33,15 +34,14 @@ class Collidable(object):
 
     @position.setter
     def position(self, v):
-        self._position_error += (v - self.position).length2
         self._position = v
-        if self._position_error > 2500:
+        if (self._position - self._bounds_pos).length2 > self.FATNESS:
             self._update_bounds()
-            self._position_error = 0
+            self._bounds_pos = self._position
 
     def _update_bounds(self):
-        fat_r = self.RADIUS + 50
-        new_bounds = Rect.from_cwh(self.position, fat_r, fat_r)
+        fat_r = self.RADIUS + self.FATNESS
+        new_bounds = Rect.from_cwh(self.position, fat_r * 2, fat_r * 2)
         if self._fat_bounds:
             try:
                 self.world.spatial_hash.remove_rect(self._fat_bounds, self)

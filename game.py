@@ -327,7 +327,7 @@ class World(EventDispatcher):
             self.non_collidable_objects.remove(o)
 
     def generate_asteroids(self):
-        spawn_random_asteroids(self, 1250)
+        spawn_random_asteroids(self, 1000)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)
             # for o in self.objects:

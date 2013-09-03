@@ -10,7 +10,27 @@ from effects import Explosion
 from labels import FloatyLabel, GOLD
 
 
-class Collidable(object):
+class Collider(object):
+    """Base class for objects that can look for collisions."""
+    COLGROUPS = 1
+    COLMASK = 0xffffffff
+
+    def get_bounding_rect(self):
+        return Rect.from_cwh(self.position, self.RADIUS * 2, self.RADIUS * 2)
+
+    def iter_collisions(self):
+        aabb = self.get_bounding_rect()
+        potential = self.world.spatial_hash.potential_intersection(aabb)
+        return (o for o in potential if o is not self and self.colliding(o))
+
+    def colliding(self, other):
+        if self.COLMASK & other.COLGROUPS:
+            r = self.RADIUS + other.RADIUS
+            return (self.position - other.position).length2 < r * r
+        return False
+
+
+class Collidable(Collider):
     """Objects that can be collided with.
 
     All collidable objects are assumed to be circles, with a fixed radius
@@ -55,16 +75,10 @@ class Collidable(object):
                 self.world.spatial_hash.add_rect(new_bounds, self)
         self._fat_bounds = new_bounds
 
-    def colliding(self, other):
-        r = self.RADIUS + other.RADIUS
-        return (self.position - other.position).length2 < r * r
-
-    def on_collide(self, player):
-        player.explode()
-
 
 class Collector(Collidable):
     id = None
+    COLGROUPS = 0x2
 
     def can_collect(self, o):
         return isinstance(o, Collectable) and (
@@ -82,11 +96,10 @@ class Collector(Collidable):
             )
 
     def do_collisions(self):
-        for o in self.world.collidable_objects:
-            if o.colliding(self):
-                if self.can_collect(o):
-                    self.collect(o)
-                    return
+        for o in self.iter_collisions():
+            if self.can_collect(o):
+                self.collect(o)
+                return
 
 
 class MoonBase(Collector):
@@ -99,9 +112,12 @@ class MoonBase(Collector):
         self.world = world
         self.moon = moon
 
-    @property
-    def position(self):
-        return self.moon.position + self.OFFSET.rotated(-self.moon.rotation)
+    def draw(self):
+        """Moon base graphic is currently part of moon."""
+
+    def update(self, dt):
+        self.position = self.moon.position + self.OFFSET.rotated(-self.moon.rotation)
+        self.do_collisions()
 
 
 class CommsStation(Collector):
@@ -153,7 +169,7 @@ class Moon(Collidable):
 
     def update(self, ts):
         self.rotation += self.ANGULAR_VELOCITY * ts
-        self.moonbase.do_collisions()
+        self.moonbase.update(ts)
 
 
 class Collectable(Collidable):
@@ -162,6 +178,10 @@ class Collectable(Collidable):
     MASS = 0.5
     VALUE = 5
     MAX_ANGULAR_VELOCITY = 60
+
+    # don't collide with the collector
+    # (because the collector collides with us)
+    COLMASK = 0xfffffffd
 
     @classmethod
     def load(cls):
@@ -199,15 +219,12 @@ class Collectable(Collidable):
         self.do_collisions()
 
     def do_collisions(self):
-        for o in self.world.collidable_objects:
-            if o is not self and o.colliding(self):
-                if isinstance(o, Collector):
-                    continue
-
-                if isinstance(o, Collectable):
-                    o.explode()
-                self.explode()
-                return
+        collisions = self.iter_collisions()
+        for o in collisions:
+            if isinstance(o, Collectable):
+                o.explode()
+            self.explode()
+            return
 
     def explode(self):
         """Explode the object."""

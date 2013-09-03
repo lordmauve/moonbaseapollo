@@ -3,7 +3,6 @@ import pyglet
 from wasabi.geom import v
 
 
-FONT_FILENAME = 'gun4fc.ttf'
 FONT_NAME = 'Gunship Condensed'
 
 

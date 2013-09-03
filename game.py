@@ -11,9 +11,9 @@ from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
 
 from loader import load_centred
-from objects import Moon, Collidable, spawn_random_asteroids, load_all, Asteroid
+from objects import Collider, Moon, Collidable, spawn_random_asteroids, load_all, Asteroid, Collector
 from effects import Explosion
-from labels import TrackingLabel, FONT_FILENAME, Signpost, GREEN, GOLD, CYAN
+from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN
 from hud import HUD
 
 
@@ -21,15 +21,6 @@ WIDTH = 1024
 HEIGHT = 600
 
 FPS = 30
-
-# Set up pyglet resource loader
-pyglet.resource.path += [
-    'sprites/',
-    'fonts/',
-    'data/',
-]
-pyglet.resource.reindex()
-pyglet.resource.add_font(FONT_FILENAME)
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
@@ -55,10 +46,13 @@ def log_exceptions():
         traceback.print_exc()
 
 
-class Player(object):
+class Player(Collider):
     ship_count = defaultdict(int)
     TETHER_FORCE = 0.5
     TETHER_DAMPING = 0.9
+
+    COLGROUPS = 0x4
+    COLMASK = 0xfffffffd
 
     def __init__(self, world, x, y, ship=CUTTER):
         self.world = world
@@ -156,10 +150,8 @@ class Player(object):
         self.do_collisions()
 
     def do_collisions(self):
-        for o in self.world.collidable_objects:
-            if o.colliding(self):
-                o.on_collide(self)
-                break
+        if any(self.iter_collisions()):
+            self.explode()
 
     def explode(self):
         Explosion(self.world, self.position)
@@ -208,9 +200,12 @@ class Player(object):
             self.tethered = None
 
 
-class Bullet(object):
+class Bullet(Collider):
     RADIUS = 3
     SPEED = 200
+
+    COLGROUPS = 0x8
+    COLMASK = 0xfffffffd
 
     @classmethod
     def load(cls):
@@ -235,13 +230,12 @@ class Bullet(object):
         self.do_collisions()
 
     def do_collisions(self):
-        for o in self.world.collidable_objects:
-            if o.colliding(self):
-                self.world.dispatch_event('on_object_shot', o)
-                self.kill()
-                if isinstance(o, Asteroid):
-                    o.fragment(self.position)
-                break
+        for o in self.iter_collisions():
+            self.world.dispatch_event('on_object_shot', o)
+            self.kill()
+            if isinstance(o, Asteroid):
+                o.fragment(self.position)
+            break
 
     def kill(self):
         Explosion(self.world, self.position)
@@ -271,7 +265,7 @@ class World(EventDispatcher):
         self.objects = []
         self.collidable_objects = []
         self.non_collidable_objects = []
-        self.spatial_hash = SpatialHash(cell_size=500.0)
+        self.spatial_hash = SpatialHash(cell_size=300.0)
         self.target_region = None
 
         self.money = 40
@@ -350,7 +344,7 @@ class World(EventDispatcher):
             o.update(ts)
 
         # Only update collidable objects near the camera
-        vp = Rect.from_cwh(self.camera.position, 1500, 1500)
+        vp = Rect.from_cwh(self.camera.position, 3000, 3000)
         culled = list(self.spatial_hash.potential_intersection(vp))
         for o in culled:
             o.update(ts)

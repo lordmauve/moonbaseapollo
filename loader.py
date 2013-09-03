@@ -1,4 +1,26 @@
+import os.path
 import pyglet.image
+import pyglet.resource
+
+
+FONT_FILENAME = 'gun4fc.ttf'
+RESOURCE_DIRS = [
+    'sprites',
+    'fonts',
+    'data'
+]
+
+
+def relpath(p):
+    """Get the absolute path of the relative path p."""
+    basedir = os.path.dirname(__file__)
+    return os.path.abspath(os.path.join(basedir, d))
+
+
+# Set up pyglet resource loader
+pyglet.resource.path += [relpath(d) for d in RESOURCE_DIRS]
+pyglet.resource.reindex()
+pyglet.resource.add_font(FONT_FILENAME)
 
 
 def make_centred(image):

@@ -117,6 +117,7 @@ class MoonBase(Collector):
 
 class CommsStation(Collector):
     RADIUS = 30.0
+    name = 'Comm Station 4'
 
     @classmethod
     def load(cls):
@@ -260,6 +261,13 @@ class FrozenFood(Collectable):
     VALUE = 35
     MASS = 2
     RADIUS = 14
+
+
+class MedicalCrate(Collectable):
+    SPRITE_NAME = 'medical-supplies'
+    VALUE = 50
+    MASS = 1.5
+    RADIUS = 11
 
 
 class Astronaut(Collectable):
@@ -447,7 +455,8 @@ CLASSES = [
     Astronaut,
     CommsStation,
     FrozenFood,
-    Coin
+    Coin,
+    MedicalCrate
 ]
 
 

@@ -113,8 +113,8 @@ class Signpost(object):
                 ('right', 'bottom'): ul.get_transform(flip_x=True, flip_y=True)
             }
 
-    def __init__(self, camera, text, follow, colour=WHITE):
-        self.camera = camera
+    def __init__(self, world, text, follow, colour=WHITE):
+        self.world = world
         self.follow = follow
         self.colour = colour
         self.text = text
@@ -126,14 +126,19 @@ class Signpost(object):
         self.load()
         self.sprite = pyglet.sprite.Sprite(next(self.pointers.itervalues()))
         self.sprite.color = colour[:3]
+        self.world.spawn(self)
+
+    def update(self, dt):
+        pass
 
     def draw(self):
         if not self.follow.alive:
-            # TODO: kill properly
+            self.world.kill(self)
             return
 
+        camera = self.world.camera
         pos = self.follow.position
-        vp = self.camera.get_viewport()
+        vp = camera.get_viewport()
         if vp.contains(pos):
             return
 
@@ -159,7 +164,7 @@ class Signpost(object):
             ly = y
             dy = 0
 
-        cx, cy = self.camera.position
+        cx, cy = camera.position
 
         anchor_x = 'left' if x < cx else 'right'
         anchor_y = 'bottom' if y < cy else 'top'

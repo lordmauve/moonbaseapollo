@@ -78,6 +78,7 @@ class Mission(Script):
         self.region_message = None
         self.waiting_enter_region = False
         self.need_class = None
+        self.must_tractor = None
         self.critical_objects = []
         self.extra_params = {}
         self.persistent_items = WeakSet()  # items to be killed if we restart
@@ -137,27 +138,33 @@ class Mission(Script):
         if signpost:
             if not isinstance(signpost, basestring):
                 signpost = inst.name
-            self.game.world.add_signpost(
-                Signpost(self.game.world.camera, signpost, inst, GOLD)
-            )
+            signpost = Signpost(self.game.world, signpost, inst, GOLD)
+            self.nonpersistent_items.add(signpost)
 
         label = None
         if getattr(inst, 'name', None):
             label = TrackingLabel(self.world, inst.name, follow=inst)
             self.world.spawn(label)
+            self.nonpersistent_items.add(label)
 
         if id:
-            inst.id = id
+            self.world.set_id(inst, id)
             self.extra_params[id] = inst
 
         if persistent:
             self.persistent_items.add(inst)
         else:
             self.nonpersistent_items.add(inst)
-        if label:
-            self.nonpersistent_items.add(label)
-
         self.wait(delay)
+
+    @script
+    def show_signpost(self, id, text=None):
+        """Re-show a signpost for a persistent named object from a previous mission."""
+        inst = self.world.get_by_id(id)
+        text = text or inst.name
+        signpost = Signpost(self.world, text, inst, GOLD)
+        self.nonpersistent_items.add(signpost)
+        self.next()
 
     @script
     def player_must_collect(self, class_name, number=1):
@@ -169,6 +176,11 @@ class Mission(Script):
         """
         self.need_class = class_name
         self.needed = number
+
+    @script
+    def player_must_tractor(self, id):
+        """Wait for the player to tractor the given item."""
+        self.must_tractor = id
 
     @script
     def say_if_object_shot(self, class_name, message, colour=hud.DEFAULT_COLOUR):
@@ -191,7 +203,9 @@ class Mission(Script):
 
     @script
     def fail_if_object_destroyed(self, id):
+        """Fail the mission if the object with the given id is destroyed."""
         self.critical_objects.append(id)
+        self.next()
 
     @script
     def player_must_enter_region(self, position, radius):
@@ -269,6 +283,11 @@ class Mission(Script):
         else:
             self.game.say(message, colour=colour)
 
+        if self.must_tractor:
+            if getattr(item, 'id', None) == self.must_tractor:
+                self.must_tractor = None
+                self.next()
+
     def on_astronaut_death(self, astronaut):
         self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
         # self.dispatch_event('on_failure')
@@ -280,10 +299,10 @@ class Mission(Script):
     def finish(self):
         pyglet.clock.unschedule(self.next)
         self.clear_items()
+        self.clear_time_limit()
         self.extra_params = {}
         self.world.clear_target_region()
         self.world.pop_handlers()
-        self.world.clear_signposts()
 
     def rewind(self):
         """Finish and revert state to before the mission."""
@@ -292,8 +311,9 @@ class Mission(Script):
 
     def skip(self):
         """Skip the mission, but set any persistent state."""
-        self.start()
-        # TODO
+        for f in self.callables[self.current:]:
+            f()
+        self.world.hud.clear_messages()
         self.finish()
 
 
@@ -339,7 +359,7 @@ m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persist
 m.fail_if_object_destroyed(id='astronaut')
 m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
 m.say("{control}: This is {astronaut.name}.")
-m.spawn('objects.CommsStation', STATION_POS, signpost='Comm Station 4', id='comm-station-4')
+m.spawn('objects.CommsStation', STATION_POS, signpost=True, id='comm-station-4', persistent=True)
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.player_must_collect('objects.Astronaut')
@@ -382,3 +402,33 @@ m.goal('Collect 6 Ice in 5 minutes')
 with m.time_limit(300):
     m.player_must_collect('objects.Ice', 6)
 m.say('{control}: Thanks, {name}. We think we have the leak under control now.')
+
+
+# Next mission (draft)
+#
+m = Mission('Rescue an astronaut')
+m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
+m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)
+m.fail_if_object_destroyed(id='astronaut')
+m.say('Comm Station 4: {astronaut.name} got hit by an exhaust jet while on a space walk.', delay=1)
+m.say('Comm Station 4: We need you to stage a rescue mission, FAST!', delay=0)
+m.goal('Rescue {astronaut.name}')
+with m.time_limit(60):
+    m.player_must_tractor('astronaut')
+m.show_signpost('comm-station-4')
+m.say('Comm Station 4: We have a sick bay here. Hurry!', delay=0)
+m.goal('Return {astronaut.name} to Comm Station 4')
+with m.time_limit(60):
+    m.player_must_collect('objects.Astronaut')
+m.say('Comm Station 4: Stand by, {name}.', delay=10)
+m.say("Comm Station 4: {astronaut.name} isn't breathing...", delay=0.5)
+m.say("Comm Station 4: We need you to fetch adrenaline from {control}, stat!")
+m.spawn('objects.MedicalCrate', v(-160, 160), destination='comm-station-4', signpost="Medical crate", id='medicrate')
+m.fail_if_object_destroyed(id='medicrate')
+m.goal('Fetch medical supplies')
+with m.time_limit(75):
+    m.player_must_collect('objects.MedicalCrate')
+m.say('Comm Station 4: Thanks, {name}.', delay=1)
+m.say('Comm Station 4: Administering adrenaline.', delay=10)
+m.say('{astronaut.name}: *gasps*', delay=1)
+m.say('{astronaut.name}: What happened? How did I get here?')

@@ -16,7 +16,7 @@ from objects import (
     Asteroid, Coin
 )
 from effects import Explosion
-from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label
+from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label, RED
 from hud import HUD
 
 
@@ -281,6 +281,7 @@ class World(EventDispatcher):
         self.objects = []
         self.collidable_objects = []
         self.non_collidable_objects = []
+        self.objects_by_id = {}
         self.spatial_hash = SpatialHash(cell_size=300.0)
         self.target_region = None
 
@@ -295,11 +296,12 @@ class World(EventDispatcher):
     def spawn_player(self):
         self.money -= 10
         self.hud.set_money(self.money)
-        if self.money > 0:
+        if self.money >= 10:
             self.player = Player(self, 0, 180)
             self.camera.track(self.player)
         else:
-            self.say("{control}: Not enough points to restart!")
+            self.say("You don't have enough credits to continue.", colour=RED)
+            self.say("Game over", colour=RED)
 
     def setup_world(self):
         """Create the initial world."""
@@ -312,11 +314,11 @@ class World(EventDispatcher):
             offset=v(30, 15)
         )
 
-        self.signposts = [Signpost(
-            self.camera,
+        Signpost(
+            self,
             'Moonbase Alpha',
             moon.moonbase
-        )]
+        )
         self.spawn_player()
         self.hud.set_money(self.money)
 
@@ -328,8 +330,18 @@ class World(EventDispatcher):
         else:
             self.non_collidable_objects.append(o)
 
+    def set_id(self, inst, id):
+        inst.id = id
+        self.objects_by_id[id] = inst
+
+    def get_by_id(self, id):
+        return self.objects_by_id[id]
+
     def kill(self, o):
         self.objects.remove(o)
+        if hasattr(o, 'id'):
+            self.objects_by_id.pop(o.id, None)
+
         if isinstance(o, Collidable):
             self.spatial_hash.remove_rect(o._fat_bounds, o)
             self.collidable_objects.remove(o)
@@ -379,8 +391,6 @@ class World(EventDispatcher):
         for o in self.non_collidable_objects:
             o.draw()
 
-        for s in self.signposts:
-            s.draw()
         self.hud.draw()
 
     def say(self, message, colour=CYAN):
@@ -530,7 +540,7 @@ class Game(object):
         print "Skipping to next mission"
         if self.mission:
             with log_exceptions():
-                self.mission.finish()
+                self.mission.skip()
         self.start_mission()
 
     def previous_mission(self, *args):

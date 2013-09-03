@@ -1,11 +1,23 @@
 import sys
 import random
+from contextlib import contextmanager
 from functools import wraps, partial
 from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
 from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
 import hud
+
+
+def random_positions(num, average_range=1000, standard_deviation=400):
+    """Yield num random positions"""
+    while num:
+        dist = random.normalvariate(average_range, standard_deviation)
+        if dist < 600:
+            continue
+        angle = random.random() * 360
+        yield v(dist, 0).rotated(angle)
+        num -= 1
 
 
 def script(func):
@@ -79,6 +91,7 @@ class Mission(Script):
             self.on_object_shot, self.on_item_collected, self.on_object_tractored,
             self.on_region_entered, self.on_astronaut_death
         )
+        self.hud = self.game.world.hud
 
     @script
     def say(self, message, colour=hud.DEFAULT_COLOUR, delay=3):
@@ -150,6 +163,37 @@ class Mission(Script):
         self.waiting_enter_region = True
         self.world.set_target_region(position, radius)
 
+    @script
+    def set_time_limit(self, t):
+        """Set a time limit to complete the next activity."""
+        self.time_limit = int(t)
+        self.hud.set_countdown(self.time_limit)
+        pyglet.clock.schedule_interval(self.on_clock_tick, 1)
+        self.next()
+
+    @script
+    def clear_time_limit(self):
+        """Set a time limit to complete the next activity."""
+        pyglet.clock.unschedule(self.on_clock_tick)
+        self.hud.clear_countdown()
+        self.next()
+
+    @contextmanager
+    def time_limit(self, t):
+        self.set_time_limit(t)
+        yield
+        self.clear_time_limit()
+
+    def on_clock_tick(self, dt):
+        self.time_limit -= 1
+        if self.time_limit < 0:
+            self.hud.clear_countdown()
+            pyglet.clock.unschedule(self.on_clock_tick)
+            self.game.say('You ran out of time!', colour=RED)
+            self.dispatch_event('on_failure')
+        else:
+            self.hud.set_countdown(self.time_limit)
+
     def on_region_entered(self):
         if self.region_message:
             self.game.say(*self.region_message)
@@ -165,6 +209,8 @@ class Mission(Script):
             if self.needed <= 0:
                 self.need_class = None
                 self.next()
+            else:
+                self.game.say('Good work! You need to collect %d more.' % self.needed, colour=GREEN)
 
     def on_object_shot(self, item):
         try:
@@ -257,18 +303,13 @@ m.player_must_collect('objects.Astronaut')
 #m.player_must_destroy('asteroid')
 
 
-POSITIONS = [
-    v(-700, -900),
-    v(-1000, 900),
-    v(500, 700),
-]
 m = Mission('Collect metal')
 m.say("{control}: {name}, our fabrication facility is just about ready.")
 m.say("{control}: We want you to supply us with metal.")
-m.goal('Collect 5 metal')
-for pos in POSITIONS:
+m.goal('Collect 4 metal')
+for pos in random_positions(3):
     m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
-m.player_must_collect('objects.Metal', 5)
+m.player_must_collect('objects.Metal', 4)
 m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
 
 
@@ -278,3 +319,14 @@ m.say('{control}: We need you to collect it and guide it through the asteroid be
 m.spawn('objects.FrozenFood', v(-2000, -300), velocity=v(30, 0), signpost='Frozen Food Supplies')
 m.player_must_collect('objects.FrozenFood')
 m.say('{control}: Delicious! They gave us a flake too!')
+
+
+m = Mission('Restock water')
+m.say('{control}: Emergency {name}, our water reclamator has sprung a leak!')
+m.say('{control}: We need you to restock our water tanks before our crops die!', delay=1)
+for p in random_positions(4):
+    m.spawn('objects.IceAsteroid', p, signpost='Ice')
+m.goal('Collect 6 Ice in 5 minutes')
+with m.time_limit(300):
+    m.player_must_collect('objects.Ice', 6)
+m.say('{control}: Thanks, {name}. We think we have the leak under control now.')

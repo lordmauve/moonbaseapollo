@@ -3,7 +3,7 @@ import pyglet
 from pyglet import gl
 from pyglet.text import Label
 
-from labels import FONT_NAME, GOLD, CYAN
+from labels import FONT_NAME, GOLD, CYAN, RED
 
 
 # Set the default message colour
@@ -33,6 +33,30 @@ class HUD(object):
             color=GOLD + (255,),
             batch=self.batch
         )
+
+        self.countdown = None
+
+    def set_countdown(self, seconds):
+        text = '%d:%02d' % (seconds // 60, seconds % 60)
+        if self.countdown:
+            self.countdown.text = text
+        else:
+            self.countdown = Label(
+                text=text,
+                x=self.width // 2,
+                y=self.height - 30,
+                font_name=FONT_NAME,
+                font_size=20,
+                anchor_x='center',
+                anchor_y='baseline',
+                color=RED + (255,),
+                batch=self.batch
+            )
+
+    def clear_countdown(self):
+        if self.countdown:
+            self.countdown.delete()
+            self.countdown = None
 
     def set_money(self, money):
         self.money.text = u'%d€' % money

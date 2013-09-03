@@ -323,7 +323,7 @@ m.say('{control}: Delicious! They gave us a flake too!')
 
 m = Mission('Restock water')
 m.say('{control}: Emergency {name}, our water reclamator has sprung a leak!')
-m.say('{control}: We need you to restock our water tanks before our crops die!', delay=1)
+m.say('{control}: We need you to restock our water tanks before our plants die!', delay=1)
 for p in random_positions(4):
     m.spawn('objects.IceAsteroid', p, signpost='Ice')
 m.goal('Collect 6 Ice in 5 minutes')

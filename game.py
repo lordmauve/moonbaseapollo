@@ -8,9 +8,10 @@ from pyglet.event import EventDispatcher, EVENT_HANDLED
 from pyglet import gl
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
+from wasabi.geom.spatialhash import SpatialHash
 
 from loader import load_centred
-from objects import Moon, Collidable, spawn_random_asteroid, load_all, Asteroid
+from objects import Moon, Collidable, spawn_random_asteroids, load_all, Asteroid
 from effects import Explosion
 from labels import TrackingLabel, FONT_FILENAME, Signpost, GREEN, GOLD, CYAN
 from hud import HUD
@@ -269,6 +270,10 @@ class World(EventDispatcher):
         self.keyboard = keyboard
         self.objects = []
         self.collidable_objects = []
+        self.non_collidable_objects = []
+        self.spatial_hash = SpatialHash(cell_size=500.0)
+        self.target_region = None
+
         self.money = 40
 
         self.camera = Camera()
@@ -276,8 +281,6 @@ class World(EventDispatcher):
 
         self.setup_projection_matrix()
         self.setup_world()
-
-        self.target_region = None
 
     def spawn_player(self):
         self.money -= 10
@@ -310,16 +313,21 @@ class World(EventDispatcher):
     def spawn(self, o):
         self.objects.append(o)
         if isinstance(o, Collidable):
+            self.spatial_hash.add_rect(o._fat_bounds, o)
             self.collidable_objects.append(o)
+        else:
+            self.non_collidable_objects.append(o)
 
     def kill(self, o):
         self.objects.remove(o)
         if isinstance(o, Collidable):
+            self.spatial_hash.remove_rect(o._fat_bounds, o)
             self.collidable_objects.remove(o)
+        else:
+            self.non_collidable_objects.remove(o)
 
     def generate_asteroids(self):
-        for i in xrange(50):
-            spawn_random_asteroid(self)
+        spawn_random_asteroids(self, 1250)
             # b = ast.get_bounds()
             # b = Circle(b.centre, b.radius + 100)
             # for o in self.objects:
@@ -338,8 +346,15 @@ class World(EventDispatcher):
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def update(self, ts):
-        for o in self.objects:
+        for o in self.non_collidable_objects:
             o.update(ts)
+
+        # Only update collidable objects near the camera
+        vp = Rect.from_cwh(self.camera.position, 1500, 1500)
+        culled = list(self.spatial_hash.potential_intersection(vp))
+        for o in culled:
+            o.update(ts)
+
         self.camera.track(self.player)
 
         if self.target_region and self.player.alive:
@@ -353,7 +368,12 @@ class World(EventDispatcher):
         gl.glClearColor(0, 0, 0, 1)
         self.camera.set_matrix()
 
-        for o in self.objects:
+        vp = self.camera.get_viewport()
+        culled = self.spatial_hash.potential_intersection(vp)
+        for o in culled:
+            o.draw()
+
+        for o in self.non_collidable_objects:
             o.draw()
 
         for s in self.signposts:

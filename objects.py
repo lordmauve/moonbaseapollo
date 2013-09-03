@@ -4,6 +4,7 @@ import math
 import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
+from wasabi.geom.poly import Rect
 
 from effects import Explosion
 from labels import FloatyLabel, GOLD
@@ -16,7 +17,44 @@ class Collidable(object):
     RADIUS in pixels, and a centre given by inst.position, which must be a
     wasabi.geom.vector.Vector.
 
+    Collidable objects maintain their references in the world's spatial hash.
+    We use "fat bounds" with error^2 counting to reduce the frequency with which
+    we have to move objects.
+
     """
+    _position = v(0, 0)
+    _position_error = float('inf')
+    _fat_bounds = None
+    alive = True
+
+    @property
+    def position(self):
+        return self._position
+
+    @position.setter
+    def position(self, v):
+        self._position_error += (v - self.position).length2
+        self._position = v
+        if self._position_error > 2500:
+            self._update_bounds()
+            self._position_error = 0
+
+    def _update_bounds(self):
+        fat_r = self.RADIUS + 50
+        new_bounds = Rect.from_cwh(self.position, fat_r, fat_r)
+        if self._fat_bounds:
+            try:
+                self.world.spatial_hash.remove_rect(self._fat_bounds, self)
+            except (KeyError, IndexError):
+                # weren't in there anyway
+                pass
+            else:
+                self.world.spatial_hash.add_rect(new_bounds, self)
+        else:
+            if self.alive:
+                self.world.spatial_hash.add_rect(new_bounds, self)
+        self._fat_bounds = new_bounds
+
     def colliding(self, other):
         r = self.RADIUS + other.RADIUS
         return (self.position - other.position).length2 < r * r
@@ -250,14 +288,14 @@ class Asteroid(Collidable):
         cls.SPRITES = [load_centred(name) for name in cls.SPRITE_NAMES]
 
     @classmethod
-    def random(cls, world):
+    def random(cls, world, random=random):
         while True:
-            x = (random.random() - 0.5) * 2000
-            y = (random.random() - 0.5) * 2000
-            pos = v(x, y)
-            if pos.length2 > 4e5:
+            dist = random.normalvariate(2500, 1000)
+            if dist > 500:
                 # Don't put asteroids too close to the moon
                 break
+        angle = random.random() * 360
+        pos = v(0, dist).rotated(angle)
         return cls(world, pos)
 
     def __init__(self, world, position, velocity=v(0, 0), img=None):
@@ -266,17 +304,18 @@ class Asteroid(Collidable):
         self.velocity = velocity
         self.sprite = pyglet.sprite.Sprite(img or random.choice(self.SPRITES))
         # self.sprite.scale = scale
-        self.sprite.rotation = random.random() * 360
+        self.rotation = random.random() * 360
         self.angular_velocity = (random.random() - 0.5) * 60
         self.world.spawn(self)
 
     def draw(self):
+        self.sprite.rotation = self.rotation
+        self.sprite.position = self.position
         self.sprite.draw()
 
     def update(self, ts):
         self.position += self.velocity * ts
-        self.sprite.position = self.position
-        self.sprite.rotation += self.angular_velocity * ts
+        self.rotation += self.angular_velocity * ts
 
     def fragment_class(self):
         return AsteroidFragment
@@ -348,8 +387,11 @@ class IceAsteroid(Asteroid):
         return Ice
 
 
-def spawn_random_asteroid(world):
-    Asteroid.random(world)
+def spawn_random_asteroids(world, num):
+    r = random.Random()
+    r.seed(0)
+    for i in xrange(num):
+        Asteroid.random(world, random=r)
 
 
 def spawn_random_collectable(world):

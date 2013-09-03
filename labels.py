@@ -48,7 +48,7 @@ class FadeyLabel(object):
             self.label.color = self.colour + (int(255 * alpha),)
 
     def kill(self):
-        self.world.objects.remove(self)
+        self.world.kill(self)
 
     def draw(self):
         # Draw label

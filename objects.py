@@ -148,6 +148,30 @@ class CommsStation(Collector):
         self.do_collisions()
 
 
+class SolarFarm(Collector):
+    RADIUS = 30.0
+    name = 'Solar Farm'
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'img'):
+            cls.img = load_centred('solar-farm')
+            cls.img.anchor_y = 40
+
+    def __init__(self, world, position):
+        self.world = world
+        self.position = position
+        self.sprite = pyglet.sprite.Sprite(self.img)
+        self.sprite.position = self.position
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def update(self, dt):
+        self.do_collisions()
+
+
 class Moon(Collidable):
     RADIUS = 140.0
     ANGULAR_VELOCITY = 5.0  # degrees/second
@@ -272,6 +296,13 @@ class MedicalCrate(Collectable):
     VALUE = 50
     MASS = 1.5
     RADIUS = 11
+
+
+class Battery(Collectable):
+    SPRITE_NAME = 'battery'
+    VALUE = 60
+    MASS = 1.5
+    RADIUS = 14
 
 
 class Astronaut(Collectable):
@@ -480,7 +511,9 @@ CLASSES = [
     CommsStation,
     FrozenFood,
     Coin,
-    MedicalCrate
+    MedicalCrate,
+    SolarFarm,
+    Battery
 ]
 
 

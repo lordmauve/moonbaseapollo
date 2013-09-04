@@ -445,6 +445,22 @@ with m.time_limit(300):
 m.say('{control}: Thanks, {name}. We think we have the leak under control now.')
 
 
+SOLAR_FARM = v(-1500, -1200)
+BATTERY = SOLAR_FARM + v(50, -50)
+m = Mission("Collect battery from Solar Farm")
+m.spawn('objects.SolarFarm', SOLAR_FARM, signpost='Solar Farm')
+m.spawn("objects.Battery", BATTERY)
+m.say("{control}: {name}, base will soon run out of power.")
+m.say("{control}: Can you bring a battery pack from our Solar Farm?")
+m.goal("Collect battery pack")
+m.player_must_enter_region(SOLAR_FARM, 200)
+m.say("Solar Farm: {name}, We were waiting for you.")
+m.say("Solar Farm: We have just finished charging this battery pack.")
+m.say_if_object_tractored('objects.Battery', "Great! Now take this back to moon base.", colour=WHITE)
+m.player_must_collect('objects.Battery')
+m.say("{control}: Thanks, we could have all died without power!")
+
+
 # Next mission (draft)
 #
 m = Mission('Rescue an astronaut')
@@ -473,3 +489,4 @@ m.say('Comm Station 4: Thanks, {name}.', delay=1)
 m.say('Comm Station 4: Administering adrenaline.', delay=10)
 m.say('{astronaut.name}: *gasps*', delay=1)
 m.say('{astronaut.name}: What happened? How did I get here?')
+

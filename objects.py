@@ -75,6 +75,15 @@ class Collidable(Collider):
                 self.world.spatial_hash.add_rect(new_bounds, self)
         self._fat_bounds = new_bounds
 
+    def kill(self):
+        self.world.kill(self)
+
+    def explode(self):
+        """Explode the object."""
+        Explosion(self.world, self.position)
+        self.kill()
+        self.world.dispatch_event('on_object_destroyed', self)
+
 
 class Collector(Collidable):
     id = None
@@ -222,12 +231,6 @@ class Collectable(Collidable):
                 o.explode()
             self.explode()
             return
-
-    def explode(self):
-        """Explode the object."""
-        Explosion(self.world, self.position)
-        self.kill()
-        self.world.dispatch_event('on_object_destroyed', self)
 
     def kill(self):
         """Remove the object from the world."""
@@ -386,6 +389,25 @@ class Asteroid(Collidable):
         vel += v(0, random.random() * self.EJECT_RANDOMNESS).rotated(random.random() * 360)
 
         self.spawn_fragment(edge_pos, vel)
+
+
+class DangerousAsteroid(Asteroid):
+    """A dangerous asteroid that can destroy space stations."""
+    COLMASK = 0x02  # Only collectors
+
+    @property
+    def SPRITES(self):
+        return Asteroid.SPRITES[:2]
+
+    @property
+    def RADIUSES(self):
+        return Asteroid.RADIUSES[:2]
+
+    def update(self, dt):
+        super(DangerousAsteroid, self).update(dt)
+        collisions = list(self.iter_collisions())
+        for o in collisions:
+            o.explode()
 
 
 class AsteroidFragment(Asteroid):

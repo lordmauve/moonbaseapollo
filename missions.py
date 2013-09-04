@@ -10,6 +10,10 @@ from weakref import WeakSet
 import hud
 
 
+# If true, print the script steps as they are being run
+DEBUG_MISSIONS = False
+
+
 def random_positions(num, average_range=1000, standard_deviation=400):
     """Yield num random positions"""
     while num:
@@ -52,6 +56,12 @@ class Script(EventDispatcher):
             self.dispatch_event('on_finish')
         else:
             self.current += 1
+            if DEBUG_MISSIONS:
+                print f.func.__name__, f.args[1:], f.keywords
+            f()
+
+    def skip(self):
+        for f in self.callables[self.current:]:
             f()
 
 Script.register_event_type('on_finish')
@@ -73,18 +83,6 @@ class Mission(Script):
         super(Mission, self).__init__()
         MISSIONS.append(self)
 
-        self.shot_messages = {}
-        self.tractored_messages = {}
-        self.region_message = None
-        self.waiting_enter_region = False
-        self.need_class = None
-        self.must_tractor = None
-        self.critical_objects = []
-        self.target_objects = []
-        self.extra_params = {}
-        self.persistent_items = WeakSet()  # items to be killed if we restart
-        self.nonpersistent_items = WeakSet()  # items to be killed at mission end
-
     def setup(self, game):
         """Called to bind the game to the mission.
 
@@ -99,6 +97,22 @@ class Mission(Script):
             self.on_astronaut_death, self.on_object_destroyed,
         )
         self.hud = self.game.world.hud
+
+        # Set up clean state
+        self.shot_messages = {}
+        self.tractored_messages = {}
+        self.region_message = None
+        self.waiting_enter_region = False
+        self.need_class = None
+        self.must_tractor = None
+        self.critical_objects = []
+        self.target_objects = []
+        self.extra_params = {}
+        self.persistent_items = WeakSet()  # items to be killed if we restart
+        self.nonpersistent_items = WeakSet()  # items to be killed at mission end
+
+        # Clear any leftover messages
+        self.hud.clear_messages()
 
     def clear_items(self, nonpersistent_only=True):
         items = list(self.nonpersistent_items)
@@ -116,10 +130,6 @@ class Mission(Script):
                 except Exception:
                     pass
 
-    def restart(self):
-        self.clear_items(False)
-        self.start()
-
     @script
     def say(self, message, colour=hud.DEFAULT_COLOUR, delay=3):
         """Record a message that will be shown on the message window."""
@@ -131,6 +141,15 @@ class Mission(Script):
 
     @script
     def spawn(self, class_name, position, signpost=None, id=None, persistent=True, delay=0, **kwargs):
+        # Destroy any existing instance that may exist
+        if id:
+            try:
+                inst = self.world.get_by_id(id)
+            except KeyError:
+                pass
+            else:
+                self.world.kill(inst)
+
         module, clsname = class_name.rsplit('.', 1)
         __import__(module)
         cls = getattr(sys.modules[module], clsname)
@@ -216,6 +235,7 @@ class Mission(Script):
 
     @script
     def player_must_destroy(self, id):
+        """Wait for the player to destroy the object with the given id."""
         self.target_objects.append(id)
 
     @script
@@ -303,14 +323,13 @@ class Mission(Script):
 
     def on_astronaut_death(self, astronaut):
         self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
-        # self.dispatch_event('on_failure')
 
     def on_failure(self):
         self.game.say("{control}: Mission failed! Try again.", colour=RED)
-        self.restart()
 
     def finish(self):
         pyglet.clock.unschedule(self.next)
+        pyglet.clock.unschedule(self.on_clock_tick)
         self.clear_items()
         self.clear_time_limit()
         self.extra_params = {}
@@ -322,11 +341,15 @@ class Mission(Script):
         self.finish()
         self.clear_items(False)
 
+    def restart(self):
+        """Rewind to the start of the mission and then start it afresh."""
+        self.rewind()
+        self.setup(self.game)  # reinstate handlers
+        self.start()
+
     def skip(self):
         """Skip the mission, but set any persistent state."""
-        for f in self.callables[self.current:]:
-            f()
-        self.world.hud.clear_messages()
+        super(Mission, self).skip()
         self.finish()
 
 
@@ -365,12 +388,15 @@ m.player_must_collect('objects.Cheese', 2)
 
 
 STATION_POS = v(700, 4600)
+def respawn_comm_station(m):
+    m.spawn('objects.CommsStation', STATION_POS, signpost=True, id='comm-station-4', persistent=True)
+
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 500)
 m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
 m.say("{control}: This is {astronaut.name}.")
-m.spawn('objects.CommsStation', STATION_POS, signpost=True, id='comm-station-4', persistent=True)
+respawn_comm_station(m)
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
 m.goal('Transport {astronaut.name} to Comm Station 4')
 m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
@@ -379,14 +405,15 @@ m.player_must_collect('objects.Astronaut')
 m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 
-# TODO!
 m = Mission('Defend the station')
-m.spawn('objects.Asteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
+respawn_comm_station(m)
+m.spawn('objects.DangerousAsteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
 m.say('{control}: Emergency, {name}! An asteroid is heading for Comm Station 4')
 m.goal('Destroy the asteroid')
 m.fail_if_object_destroyed('comm-station-4')
 m.player_must_destroy('asteroid')
 m.say('{control}: Thanks. Comm Station 4 is safe now.')
+
 
 m = Mission('Collect metal')
 m.say("{control}: {name}, our fabrication facility is just about ready.")

@@ -409,8 +409,11 @@ class World(EventDispatcher):
     def on_item_collected(self, collector, item):
         if item.VALUE:
             money_label(self, item.position, item.VALUE)
-            self.money += item.VALUE
-            self.hud.set_money(self.money)
+            self.give_money(item.VALUE)
+
+    def give_money(self, amount):
+        self.money += amount
+        self.hud.set_money(self.money)
 
     def set_target_region(self, position, radius):
         """Set a circular target region.
@@ -473,7 +476,7 @@ class Game(object):
     def respawn(self, *args):
         self.world.spawn_player()
         if self.world.player.alive:
-            self.say("{control}: Please treat this one more carefully!")
+            self.say("{control}: Please treat this ship more carefully!")
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.Z:
@@ -508,13 +511,12 @@ class Game(object):
     def restart_mission(self, *args):
         if self.mission:
             with log_exceptions():
-                self.mission.finish()
-
-        self.start_mission()
+                self.mission.restart()
 
     def start_mission(self, *args):
         # Cancel the next mission event if we got here by key press
         pyglet.clock.unschedule(self.next_mission)
+        pyglet.clock.unschedule(self.restart_mission)
 
         # Start mission
         with log_exceptions():
@@ -530,10 +532,16 @@ class Game(object):
                 self.mission.setup(self)
                 self.mission.start()
                 self.mission.set_handler('on_finish', self.on_mission_finish)
+                self.mission.set_handler('on_failure', self.on_failure)
 
     def on_mission_finish(self):
         self.say('Mission complete!', colour=GOLD)
+        self.world.give_money(100)
         pyglet.clock.schedule(self.next_mission, 5)
+
+    def on_failure(self):
+        """Wait a few seconds for the player to absorb their failure."""
+        pyglet.clock.schedule_once(self.restart_mission, 5)
 
     def next_mission(self, *args):
         self.mission_number += 1

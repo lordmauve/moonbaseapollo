@@ -101,6 +101,7 @@ class HUD(object):
         for m in self.message_labels:
             m.delete()
         del self.message_labels[:]
+        pyglet.clock.unschedule(self.pop_messages)
 
     def draw(self):
         gl.glLoadIdentity()

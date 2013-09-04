@@ -37,12 +37,15 @@ class Script(EventDispatcher):
     def __init__(self):
         self.callables = []
         self.current = 0
+        self.skipping = False
 
     def start(self):
         self.current = 0
         self.next()
 
     def wait(self, delay):
+        if self.skipping:
+            return
         if delay:
             pyglet.clock.schedule_once(self.next, delay)
         else:
@@ -50,6 +53,9 @@ class Script(EventDispatcher):
 
     def next(self, *args):
         """Call the next callable."""
+        if self.skipping:
+            return
+
         try:
             f = self.callables[self.current]
         except IndexError:
@@ -61,8 +67,12 @@ class Script(EventDispatcher):
             f()
 
     def skip(self):
-        for f in self.callables[self.current:]:
-            f()
+        self.skipping = True
+        try:
+            for f in self.callables[self.current:]:
+                f()
+        finally:
+            self.skipping = False
 
 Script.register_event_type('on_finish')
 
@@ -392,6 +402,7 @@ class Mission(Script):
     def skip(self):
         """Skip the mission, but set any persistent state."""
         super(Mission, self).skip()
+        self.hud.clear_messages()
         self.finish()
 
 

@@ -13,7 +13,7 @@ from wasabi.geom.spatialhash import SpatialHash
 from loader import load_centred
 from objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
-    Asteroid, Coin
+    Asteroid, Coin, Marker
 )
 from background import Starfield
 from effects import Explosion
@@ -167,8 +167,8 @@ class Player(Collider):
 
     def do_collisions(self):
         for o in self.iter_collisions():
-            if isinstance(o, Coin):
-                self.world.on_item_collected(self, o)
+            if isinstance(o, (Coin, Marker)):
+                self.world.dispatch_event('on_item_collected', self, o)
                 o.kill()
             elif isinstance(o, Collectable):
                 if not self.tethered:
@@ -231,7 +231,7 @@ class Bullet(Collider):
     SPEED = 200
 
     COLGROUPS = 0x8
-    COLMASK = 0xfffffffd
+    COLMASK = 0xfd
 
     @classmethod
     def load(cls):

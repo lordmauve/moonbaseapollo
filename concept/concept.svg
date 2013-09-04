@@ -222,11 +222,11 @@
      pagecolor="#000000"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageopacity="1"
+     inkscape:pageopacity="0"
      inkscape:pageshadow="2"
      inkscape:zoom="1"
      inkscape:cx="-183.96918"
-     inkscape:cy="164.00614"
+     inkscape:cy="644.00614"
      inkscape:document-units="px"
      inkscape:current-layer="g5707"
      showgrid="false"
@@ -3883,6 +3883,29 @@
            x="-470.70673"
            id="tspan5598"
            sodipodi:role="line">APOLLO</tspan></text>
+      <g
+         id="g7420"
+         transform="matrix(1.1743119,0,0,1.1743119,66.238532,42.940654)"
+         inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/marker.png"
+         inkscape:export-xdpi="90"
+         inkscape:export-ydpi="90">
+        <path
+           transform="matrix(0.4025974,0,0,0.4025974,-174.32468,-95.938664)"
+           d="m -337,-505.41907 c 0,21.26297 -17.23704,38.5 -38.5,38.5 -21.26296,0 -38.5,-17.23703 -38.5,-38.5 0,-21.26296 17.23704,-38.5 38.5,-38.5 21.26296,0 38.5,17.23704 38.5,38.5 z"
+           sodipodi:ry="38.5"
+           sodipodi:rx="38.5"
+           sodipodi:cy="-505.41907"
+           sodipodi:cx="-375.5"
+           id="path7383"
+           style="opacity:0.35390947;color:#000000;fill:#fc6500;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:3.27357149000000014;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+           sodipodi:type="arc" />
+        <path
+           id="path7385"
+           transform="translate(50,206)"
+           d="m -385.5,-559.46875 c -25.26471,4.72033 -44.5,26.96989 -44.5,53.5625 0,26.5914 19.23699,48.84079 44.5,53.5625 l 0,-16.375 c -16.46337,-4.37311 -28.5,-19.2934 -28.5,-37.1875 0,-17.89409 12.03663,-32.81439 28.5,-37.1875 l 0,-16.375 z m 20,0 0,16.375 c 16.46336,4.37311 28.5,19.29341 28.5,37.1875 0,17.8941 -12.03664,32.81439 -28.5,37.1875 l 0,16.375 c 25.26301,-4.72171 44.5,-26.9711 44.5,-53.5625 0,-26.59261 -19.23529,-48.84217 -44.5,-53.5625 z"
+           style="font-size:medium;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;text-indent:0;text-align:start;text-decoration:none;line-height:normal;letter-spacing:normal;word-spacing:normal;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;opacity:0.35390947;color:#000000;fill:#fc6500;fill-opacity:1;stroke:none;stroke-width:13.24731159000000069;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Sans;-inkscape-font-specification:Sans"
+           inkscape:connector-curvature="0" />
+      </g>
     </g>
     <text
        xml:space="preserve"

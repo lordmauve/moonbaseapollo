@@ -77,6 +77,7 @@ class Collidable(Collider):
 
     def kill(self):
         self.world.kill(self)
+        self.alive = False
 
     def explode(self):
         """Explode the object."""
@@ -175,6 +176,33 @@ class Moon(Collidable):
     def update(self, ts):
         self.rotation += self.ANGULAR_VELOCITY * ts
         self.moonbase.update(ts)
+
+
+class Marker(Collidable):
+    """Mark the place where a player must go."""
+    COLGROUPS = 0x100
+
+    ANGULAR_VELOCITY = 10
+    RADIUS = 48
+    VALUE = 0
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'img'):
+            cls.img = load_centred('marker')
+
+    def __init__(self, world, position):
+        self.world = world
+        self.position = position
+        self.sprite = pyglet.sprite.Sprite(self.img)
+        self.sprite.position = position
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.sprite.rotation += self.ANGULAR_VELOCITY * ts
 
 
 class Collectable(Collidable):
@@ -321,6 +349,8 @@ class Asteroid(Collidable):
         64,
         64
     ]
+
+    COLMASK = 0xff
 
     @classmethod
     def load(cls):
@@ -480,7 +510,8 @@ CLASSES = [
     CommsStation,
     FrozenFood,
     Coin,
-    MedicalCrate
+    MedicalCrate,
+    Marker
 ]
 
 

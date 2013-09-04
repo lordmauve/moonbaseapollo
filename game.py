@@ -24,7 +24,7 @@ from hud import HUD
 WIDTH = 1024
 HEIGHT = 600
 
-FPS = 30
+FPS = 60
 
 # Reducing this number makes the game much easier
 NUM_ASTEROIDS = 700

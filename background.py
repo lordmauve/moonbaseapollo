@@ -6,13 +6,14 @@ from wasabi.geom.poly import Rect
 from pyglet.graphics import Batch
 
 
+DEPTH = 10000
 BLOCK_SIZE = 5000
 
-STARS_PER_BLOCK = 2000
+STARS_PER_BLOCK = 2500
 
 FOVY = 40.0
 NEAR_PLANE = 500.0
-FAR_PLANE = BLOCK_SIZE + NEAR_PLANE
+FAR_PLANE = DEPTH + NEAR_PLANE
 
 FAR_PLANE_SCALE = (FAR_PLANE + NEAR_PLANE) / NEAR_PLANE
 
@@ -79,9 +80,10 @@ class StarfieldBlock(object):
             coords.extend([
                 rng.random() * w + l,
                 rng.random() * h + b,
-                rng.uniform(-BLOCK_SIZE * z, 0)
+                -DEPTH * z
             ])
-            cols.extend([1.0 - z] * 3)
+            invz = 1.0 - z * 0.9
+            cols.extend([invz * invz] * 3)
 
         self.vlist = batch.add(
             STARS_PER_BLOCK, gl.GL_POINTS, None,

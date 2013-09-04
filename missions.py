@@ -83,6 +83,8 @@ class Mission(Script):
         super(Mission, self).__init__()
         MISSIONS.append(self)
 
+        self.handlers_installed = False
+
     def setup(self, game):
         """Called to bind the game to the mission.
 
@@ -91,12 +93,15 @@ class Mission(Script):
         """
         self.game = game
         self.world = game.world
-        self.world.push_handlers(
-            self.on_object_shot, self.on_item_collected,
-            self.on_object_tractored, self.on_region_entered,
-            self.on_astronaut_death, self.on_object_destroyed,
-            self.on_object_released
-        )
+
+        if not self.handlers_installed:
+            self.world.push_handlers(
+                self.on_object_shot, self.on_item_collected,
+                self.on_object_tractored, self.on_region_entered,
+                self.on_astronaut_death, self.on_object_destroyed,
+                self.on_object_released
+            )
+            self.handlers_installed = True
         self.hud = self.game.world.hud
 
         # Set up clean state
@@ -369,7 +374,9 @@ class Mission(Script):
         self.clear_time_limit()
         self.extra_params = {}
         self.world.clear_target_region()
-        self.world.pop_handlers()
+        if self.handlers_installed:
+            self.world.pop_handlers()
+            self.handlers_installed = False
 
     def rewind(self):
         """Finish and revert state to before the mission."""
@@ -506,23 +513,21 @@ m.say('{control}: Thanks, {name}. We think we have the leak under control now.')
 
 
 SOLAR_FARM = v(-2000, -1300)
-BATTERY = SOLAR_FARM + v(50, -50)
+BATTERY = SOLAR_FARM + v(0, 65)
 m = Mission("Collect battery from Solar Farm")
 m.spawn('objects.SolarFarm', SOLAR_FARM, signpost='Solar Farm')
-m.spawn("objects.Battery", BATTERY)
-m.say("{control}: {name}, base will soon run out of power.")
-m.say("{control}: Can you bring a battery pack from our Solar Farm?")
+m.spawn("objects.Battery", BATTERY, destination='moonbase', persistent=False)
+m.say("{control}: {name}, the base is running out of power.")
+m.say("{control}: Can you bring a battery pack from the Solar Farm?")
 m.goal("Collect battery pack")
 m.player_must_enter_region(SOLAR_FARM, 200)
-m.say("Solar Farm: {name}, We were waiting for you.")
-m.say("Solar Farm: We have just finished charging this battery pack.")
-m.say_if_object_tractored('objects.Battery', "Great! Now take this back to moon base.", colour=WHITE)
+m.say("Solar Farm: Ahoy, {name}!")
+m.say("Solar Farm: One battery pack, full of juice!")
+m.say_if_object_tractored('objects.Battery', "Return battery pack to {control}", colour=GREEN)
 m.player_must_collect('objects.Battery')
 m.say("{control}: Thanks, we could have all died without power!")
 
 
-# Next mission (draft)
-#
 m = Mission('Rescue an astronaut')
 m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
 m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)

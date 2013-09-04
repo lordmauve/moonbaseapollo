@@ -336,6 +336,18 @@ class Battery(Collectable):
     VALUE = 60
     MASS = 1.5
     RADIUS = 14
+    MAX_ANGULAR_VELOCITY = 0  # Start non-rotating
+
+    def __init__(self, *args, **kwargs):
+        super(Battery, self).__init__(*args, **kwargs)
+        self.sprite.rotation = 0
+
+    def update(self, dt):
+        if self.tethered_to:
+            # Rotate once tethered
+            self.angular_velocity += dt
+            self.angular_velocity = min(self.angular_velocity, 8.0)  # cap
+        super(Battery, self).update(dt)
 
 
 class Astronaut(Collectable):

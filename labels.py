@@ -13,6 +13,7 @@ GOLD = (212, 170, 0)
 GREEN = (0, 128, 0)
 CYAN = (24, 100, 97)
 RED = (128, 0, 0)
+YELLOW = (128, 128, 0)
 
 
 class FadeyLabel(object):

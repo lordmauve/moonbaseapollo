@@ -17,9 +17,14 @@ from objects import (
 )
 from background import Starfield
 from effects import Explosion
-from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label, RED
+from labels import (
+    TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label, RED, YELLOW
+)
 from hud import HUD
 
+
+# Change this before release!
+CHEATS = True
 
 WIDTH = 1024
 HEIGHT = 600
@@ -39,16 +44,41 @@ RESPAWN_COST = 50
 MISSION_BONUS = 100
 
 
-ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
+ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass colour')
 
 CUTTER = ShipModel(
     name='Cutter',
     sprite=load_centred('cutter'),
     rotation=100.0,  # angular velocity, degrees/second
     acceleration=15.0,  # pixels per second per second
-    max_speed=200.0,  # maximum speed in pixels/second
-    radius=5.0,
-    mass=1
+    max_speed=150.0,  # maximum speed in pixels/second
+    radius=8.0,
+    mass=1,
+    colour=GREEN
+)
+
+
+LUGGER = ShipModel(
+    name='Lugger',
+    sprite=load_centred('lugger'),
+    rotation=200.0,  # angular velocity, degrees/second
+    acceleration=10.0,  # pixels per second per second
+    max_speed=150.0,  # maximum speed in pixels/second
+    radius=14.0,
+    mass=2,
+    colour=RED
+)
+
+
+CLIPPER = ShipModel(
+    name='Clipper',
+    sprite=load_centred('clipper'),
+    rotation=150.0,  # angular velocity, degrees/second
+    acceleration=20.0,  # pixels per second per second
+    max_speed=250,  # maximum speed in pixels/second
+    radius=14.0,
+    mass=1.5,
+    colour=YELLOW
 )
 
 
@@ -90,8 +120,12 @@ class Player(Collider):
             self.world,
             self.name,
             follow=self,
-            colour=GREEN
+            colour=self.ship.colour
         )
+
+    def set_ship(self, ship):
+        self.ship = ship
+        self.sprite.image = ship.sprite
 
     def pick_name(self):
         """Pick a name for this ship.
@@ -301,6 +335,7 @@ class World(EventDispatcher):
         self.spatial_hash = SpatialHash(cell_size=300.0)
         self.target_region = None
         self.money = 0
+        self.current_ship = CUTTER
 
         self.starfield = Starfield()
         self.camera = Camera()
@@ -314,7 +349,7 @@ class World(EventDispatcher):
             if not freebie:
                 self.money -= RESPAWN_COST
                 self.hud.set_money(self.money)
-            self.player = Player(self, 0, 180)
+            self.player = Player(self, 0, 180, ship=self.current_ship)
             self.camera.track(self.player)
         else:
             self.say("You don't have enough credits to continue.", colour=RED)
@@ -475,6 +510,7 @@ class Game(object):
         # initialise the World and start the game
         self.world = World(self.keyboard)
         self.world.set_handler('on_player_death', self.on_player_death)
+
         self.mission = None
         self.mission_number = mission - 1
         self.start()
@@ -507,12 +543,22 @@ class Game(object):
                 else:
                     player.shoot()
             return EVENT_HANDLED
-        elif symbol == key.F3:
-            self.next_mission()
-        elif symbol == key.F4:
-            self.previous_mission()
-        elif symbol == key.F5:
-            self.reload_missions()
+        if CHEATS:
+            if symbol == key.F3:
+                self.next_mission()
+            elif symbol == key.F4:
+                self.previous_mission()
+            elif symbol == key.F5:
+                self.reload_missions()
+            elif symbol == key.F6:
+                self.world.current_ship = CUTTER
+                self.world.player.set_ship(CUTTER)
+            elif symbol == key.F7:
+                self.world.current_ship = LUGGER
+                self.world.player.set_ship(LUGGER)
+            elif symbol == key.F8:
+                self.world.current_ship = CLIPPER
+                self.world.player.set_ship(CLIPPER)
 
     def reload_missions(self):
         if self.mission:

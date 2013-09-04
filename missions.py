@@ -95,6 +95,7 @@ class Mission(Script):
             self.on_object_shot, self.on_item_collected,
             self.on_object_tractored, self.on_region_entered,
             self.on_astronaut_death, self.on_object_destroyed,
+            self.on_object_released
         )
         self.hud = self.game.world.hud
 
@@ -105,6 +106,7 @@ class Mission(Script):
         self.waiting_enter_region = False
         self.need_class = None
         self.must_tractor = None
+        self.must_release = None
         self.critical_objects = []
         self.target_objects = []
         self.extra_params = {}
@@ -140,7 +142,18 @@ class Mission(Script):
         self.say("New mission: " + title, colour=GREEN, delay=0)
 
     @script
-    def spawn(self, class_name, position, signpost=None, id=None, persistent=True, delay=0, **kwargs):
+    def spawn(self, *args, **kwargs):
+        """Spawn a thing."""
+        self.do_spawn(*args, **kwargs)
+
+    @script
+    def spawn_above_moonbase(self, class_name, *args, **kwargs):
+        """Spawn a thing above the moonbase, wherever it may be right now."""
+        moon = self.world.moon
+        position = moon.position + v(0, 220).rotated(-moon.rotation)
+        self.do_spawn(class_name, position, *args, **kwargs)
+
+    def do_spawn(self, class_name, position, signpost=None, id=None, persistent=True, delay=0, **kwargs):
         # Destroy any existing instance that may exist
         if id:
             try:
@@ -201,6 +214,16 @@ class Mission(Script):
     def player_must_tractor(self, id):
         """Wait for the player to tractor the given item."""
         self.must_tractor = id
+
+    @script
+    def player_must_release(self, id):
+        """Wait for the player to release the given item."""
+        self.must_release = (id, None)
+
+    @script
+    def player_must_release_in_region(self, id, pos, radius):
+        """Wait for the player to release the given item."""
+        self.must_release = (id, (pos, radius))
 
     @script
     def say_if_object_shot(self, class_name, message, colour=hud.DEFAULT_COLOUR):
@@ -321,6 +344,18 @@ class Mission(Script):
                 self.must_tractor = None
                 self.next()
 
+    def on_object_released(self, item):
+        if self.must_release:
+            id, pos = self.must_release
+            if getattr(item, 'id', None) == id:
+                if pos:
+                    # If a radius was specified, check we released within it
+                    p, r = pos
+                    if (item.position - p).length2 > r *r:
+                        return
+                self.must_release = None
+                self.next()
+
     def on_astronaut_death(self, astronaut):
         self.game.say("{control}: Oh my god! You killed %s! You bastard!" % astronaut.name)
 
@@ -402,7 +437,7 @@ def respawn_comm_station(m):
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 500)
-m.spawn('objects.Astronaut', v(160, 160), id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
+m.spawn_above_moonbase('objects.Astronaut', id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
 m.say("{control}: This is {astronaut.name}.")
 respawn_comm_station(m)
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.")
@@ -431,6 +466,23 @@ for pos in random_positions(3):
     m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
 m.player_must_collect('objects.Metal', 4)
 m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
+
+
+TARGET_POS = v(3000, -3000)
+m = Mission('Launch Satellite')
+m.fail_if_object_destroyed('satellite')
+m.say("{control}: The metal you provided us has helped up build a satellite uplink.")
+m.spawn_above_moonbase('objects.Satellite', signpost=True, id='satellite', destination='nowhere')
+m.say("{control}: Please can you get it into place for us?")
+m.goal('Pick up the satellite')
+m.player_must_tractor('satellite')
+m.say('{control}: We have picked out a spot where we would like you to set it up.', delay=0)
+m.spawn('objects.FixedMarker', TARGET_POS, signpost='Target Site', persistent=False, id='marker')
+m.player_must_enter_region(TARGET_POS, 300)
+m.say("{control}: Anywhere here looks fine.")
+m.player_must_release_in_region('satellite', TARGET_POS, 600)
+#m.destroy('marker')
+m.say("{control}: Excellent, {satellite.name} is coming online. Readings look good.")
 
 
 m = Mission('Retrieve supply drop')
@@ -472,7 +524,7 @@ with m.time_limit(60):
 m.say('Comm Station 4: Stand by, {name}.', delay=10)
 m.say("Comm Station 4: {astronaut.name} isn't breathing...", delay=0.5)
 m.say("Comm Station 4: We need you to fetch adrenaline from {control}, stat!")
-m.spawn('objects.MedicalCrate', v(-160, 160), destination='comm-station-4', signpost="Medical crate", id='medicrate')
+m.spawn_above_moonbase('objects.MedicalCrate', destination='comm-station-4', signpost="Medical crate", id='medicrate')
 m.fail_if_object_destroyed(id='medicrate')
 m.goal('Fetch medical supplies')
 with m.time_limit(75):

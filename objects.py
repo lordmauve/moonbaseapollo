@@ -205,6 +205,11 @@ class Marker(Collidable):
         self.sprite.rotation += self.ANGULAR_VELOCITY * ts
 
 
+class FixedMarker(Marker):
+    """A marker that doesn't disappear if touched."""
+    COLGROUPS = 0
+
+
 class Collectable(Collidable):
     RADIUS = 9.0
     SPRITE_NAME = None  # Subclasses should set this
@@ -323,9 +328,25 @@ class Astronaut(Collectable):
         super(Astronaut, self).explode()
         self.world.dispatch_event('on_astronaut_death', self)
 
-    def kill(self):
-        self.alive = False
-        super(Astronaut, self).kill()
+
+class Satellite(Collectable):
+    SPRITE_NAME = 'colonysat'
+    VALUE = 0
+    RADIUS = 14
+    MASS = 4
+
+    name = 'ColonySat 1'
+
+    def __init__(self, *args, **kwargs):
+        super(Satellite, self).__init__(*args, **kwargs)
+        self.angular_velocity = 10
+
+    def update(self, dt):
+        if not self.tethered_to:
+            self.velocity *= 0.5 ** dt
+        else:
+            self.angular_velocity *= 0.5 ** dt
+        super(Satellite, self).update(dt)
 
 
 class Asteroid(Collidable):
@@ -511,7 +532,8 @@ CLASSES = [
     FrozenFood,
     Coin,
     MedicalCrate,
-    Marker
+    Marker,
+    Satellite
 ]
 
 

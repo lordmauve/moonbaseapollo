@@ -9,7 +9,7 @@ from pyglet.graphics import Batch
 DEPTH = 10000
 BLOCK_SIZE = 5000
 
-STARS_PER_BLOCK = 2500
+STARS_PER_BLOCK = 2000
 
 FOVY = 40.0
 NEAR_PLANE = 500.0
@@ -82,8 +82,9 @@ class StarfieldBlock(object):
                 rng.random() * h + b,
                 -DEPTH * z
             ])
-            invz = 1.0 - z * 0.9
-            cols.extend([invz * invz] * 3)
+            # Colour is a function of depth
+            invz = 1.0 - z * 0.8
+            cols.extend([invz * invz] * 3)  # grayscale for now
 
         self.vlist = batch.add(
             STARS_PER_BLOCK, gl.GL_POINTS, None,

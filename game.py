@@ -121,9 +121,9 @@ class Player(Collider):
         across = along.rotated(90).normalised() * self.tethered.RADIUS
         gl.glEnable(gl.GL_BLEND)
         gl.glBegin(gl.GL_TRIANGLES)
-        gl.glColor4f(0, 128, 0, 0.4)
+        gl.glColor4f(0.7, 0.2, 1.0, 0.5)
         gl.glVertex2f(*p1)
-        gl.glColor4f(0, 128, 0, 0)
+        gl.glColor4f(0.7, 0.2, 1.0, 0)
         gl.glVertex2f(*(p2 + across))
         gl.glVertex2f(*(p2 - across))
         gl.glEnd()

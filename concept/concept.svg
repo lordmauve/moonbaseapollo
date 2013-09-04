@@ -224,11 +224,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="1"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="136.03082"
-     inkscape:cy="444.83875"
+     inkscape:zoom="1"
+     inkscape:cx="-183.96918"
+     inkscape:cy="164.00614"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="g5707"
      showgrid="false"
      showguides="true"
      inkscape:guide-bbox="true"
@@ -3814,7 +3814,7 @@
          inkscape:export-ydpi="90"
          inkscape:export-xdpi="90"
          inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
-         transform="matrix(-0.82743098,2.0381273,-2.0381273,-0.82743098,129.69238,-76.025929)"
+         transform="matrix(-0.82743098,2.0381273,-2.0381273,-0.82743098,129.69238,-310.02593)"
          d="m 214.28572,291.64789 a 5,5 0 1 1 -10,0 5,5 0 1 1 10,0 z"
          sodipodi:ry="5"
          sodipodi:rx="5"
@@ -3830,11 +3830,10 @@
          inkscape:export-filename="/home/mauve/dev/pyweek17/concept/concept1.png"
          inkscape:connector-curvature="0"
          id="path3018-1"
-         d="m -539.2069,271.68732 69.33185,-16.95268 -62.26019,36.82558 z"
-         style="opacity:0.25;fill:#999999;stroke:none"
-         transform="translate(-100.96875,-172.78125)" />
+         d="m -640.17565,-135.09393 69.33185,-16.95268 -62.26019,36.82558 z"
+         style="opacity:0.25;fill:#999999;stroke:none" />
       <path
-         transform="matrix(1.8224609,0,0,1.8224609,-904.35346,-420.09902)"
+         transform="matrix(1.8224609,0,0,1.8224609,-904.35346,-654.09902)"
          sodipodi:type="arc"
          style="color:#000000;fill:url(#radialGradient5718);fill-opacity:1;stroke:#aa4400;stroke-width:0.73732722;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
          id="path3077-0"
@@ -3851,7 +3850,7 @@
          inkscape:export-xdpi="90"
          inkscape:export-filename="/home/mauve/dev/pyweek17/sprites/cutter.png"
          id="g3984-5"
-         transform="matrix(0.52709903,-0.84980386,0.84980386,0.52709903,-1007.7653,36.78725)">
+         transform="matrix(0.52709903,-0.84980386,0.84980386,0.52709903,-1007.7653,-197.21275)">
         <path
            inkscape:export-ydpi="90"
            inkscape:export-xdpi="90"
@@ -3866,24 +3865,24 @@
          sodipodi:linespacing="125%"
          id="text5588"
          y="82.78717"
-         x="-651.46814"
+         x="-543.46814"
          style="font-size:45.35855865px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;text-align:start;line-height:125%;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#808080;fill-opacity:1;stroke:none;font-family:Gunship Condensed;-inkscape-font-specification:'Gunship Condensed, Condensed'"
          xml:space="preserve"><tspan
            id="tspan5592"
            y="82.78717"
-           x="-651.46814"
+           x="-543.46814"
            sodipodi:role="line">MoonBase</tspan></text>
       <text
          sodipodi:linespacing="125%"
          id="text5596"
          y="120.33729"
-         x="-496.70673"
+         x="-470.70673"
          style="font-size:45.35855865px;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:condensed;text-indent:0;text-align:start;text-decoration:none;line-height:125%;letter-spacing:0px;word-spacing:0px;text-transform:none;direction:ltr;block-progression:tb;writing-mode:lr-tb;text-anchor:start;baseline-shift:baseline;color:#000000;fill:#ffffff;fill-opacity:1;fill-rule:nonzero;stroke:none;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate;font-family:Gunship Condensed;-inkscape-font-specification:'Gunship Condensed, Condensed'"
          xml:space="preserve"><tspan
            y="120.33729"
-           x="-496.70673"
+           x="-470.70673"
            id="tspan5598"
-           sodipodi:role="line">MINER</tspan></text>
+           sodipodi:role="line">APOLLO</tspan></text>
     </g>
     <text
        xml:space="preserve"

@@ -30,6 +30,7 @@ class Starfield(object):
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPushMatrix()
         gl.glLoadIdentity()
+        gl.glEnable(gl.GL_DEPTH_TEST)
         gl.gluPerspective(
             FOVY, camera.aspect(),
             NEAR_PLANE, FAR_PLANE
@@ -37,6 +38,7 @@ class Starfield(object):
         self.batch.draw()
         gl.glPopMatrix()
         gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glDisable(gl.GL_DEPTH_TEST)
 
     def build_blocks(self, camera):
         # compute correct clip rect on far plane

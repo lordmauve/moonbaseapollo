@@ -237,6 +237,7 @@ class Collectable(Collidable):
         if self.tethered_to:
             self.tethered_to.release()
         self.world.kill(self)
+        self.alive = False
 
 
 class Cheese(Collectable):

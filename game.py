@@ -15,6 +15,7 @@ from objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
     Asteroid, Coin
 )
+from background import Starfield
 from effects import Explosion
 from labels import TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label, RED
 from hud import HUD
@@ -27,6 +28,15 @@ FPS = 30
 
 # Reducing this number makes the game much easier
 NUM_ASTEROIDS = 700
+
+# Amount of money you start with
+INITIAL_MONEY = 100
+
+# Cost to respawn
+RESPAWN_COST = 50
+
+# Money awarded for completing a mission
+MISSION_BONUS = 100
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass')
@@ -271,6 +281,9 @@ class Camera(object):
     def track(self, o):
         self.position = o.position
 
+    def aspect(self):
+        return WIDTH / float(HEIGHT)
+
     def get_viewport(self):
         return Rect.from_cwh(self.position, WIDTH, HEIGHT)
 
@@ -284,19 +297,20 @@ class World(EventDispatcher):
         self.objects_by_id = {}
         self.spatial_hash = SpatialHash(cell_size=300.0)
         self.target_region = None
+        self.money = 0
 
-        self.money = 40
-
+        self.starfield = Starfield()
         self.camera = Camera()
         self.hud = HUD(WIDTH, HEIGHT)
 
         self.setup_projection_matrix()
         self.setup_world()
 
-    def spawn_player(self):
-        self.money -= 10
-        self.hud.set_money(self.money)
-        if self.money >= 10:
+    def spawn_player(self, freebie=False):
+        if freebie or self.money >= RESPAWN_COST:
+            if not freebie:
+                self.money -= RESPAWN_COST
+                self.hud.set_money(self.money)
             self.player = Player(self, 0, 180)
             self.camera.track(self.player)
         else:
@@ -319,8 +333,8 @@ class World(EventDispatcher):
             'Moonbase Alpha',
             moon.moonbase
         )
-        self.spawn_player()
-        self.hud.set_money(self.money)
+        self.spawn_player(freebie=True)
+        self.give_money(INITIAL_MONEY)
 
     def spawn(self, o):
         self.objects.append(o)
@@ -382,6 +396,7 @@ class World(EventDispatcher):
         # draw a black background
         gl.glClearColor(0, 0, 0, 1)
         self.camera.set_matrix()
+        self.starfield.draw(self.camera)
 
         vp = self.camera.get_viewport()
         culled = self.spatial_hash.potential_intersection(vp)
@@ -536,7 +551,7 @@ class Game(object):
 
     def on_mission_finish(self):
         self.say('Mission complete!', colour=GOLD)
-        self.world.give_money(100)
+        self.world.give_money(MISSION_BONUS)
         pyglet.clock.schedule(self.next_mission, 5)
 
     def on_failure(self):

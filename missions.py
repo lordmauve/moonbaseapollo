@@ -505,7 +505,7 @@ with m.time_limit(300):
 m.say('{control}: Thanks, {name}. We think we have the leak under control now.')
 
 
-SOLAR_FARM = v(-1500, -1200)
+SOLAR_FARM = v(-2000, -1300)
 BATTERY = SOLAR_FARM + v(50, -50)
 m = Mission("Collect battery from Solar Farm")
 m.spawn('objects.SolarFarm', SOLAR_FARM, signpost='Solar Farm')

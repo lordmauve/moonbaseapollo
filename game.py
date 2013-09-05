@@ -46,6 +46,17 @@ MISSION_BONUS = 100
 
 
 laser_sound = pyglet.resource.media('laser.wav', streaming=False)
+pickup_sound = pyglet.resource.media('pickup.wav', streaming=False)
+drop_sound = pyglet.resource.media('drop.wav', streaming=False)
+ding_sound = pyglet.resource.media('ding.wav', streaming=False)
+
+
+music_player = pyglet.media.Player()
+music_player.eos_action = pyglet.media.Player.EOS_LOOP
+music_player.volume = 0.4
+music = pyglet.resource.media('mutations.ogg')
+music_player.queue(music)
+music_player.play()
 
 
 @contextmanager
@@ -219,10 +230,13 @@ class Player(Collider):
         Bullet(self.world, self.position, dir, self.velocity)
 
     def attach(self, other):
+        if self.tethered:
+            return
         self.release()
         self.world.dispatch_event('on_object_tractored', other)
         self.tethered = other
         other.tethered_to = self
+        pickup_sound.play()
 
     def release(self):
         if self.tethered:
@@ -442,6 +456,7 @@ class World(EventDispatcher):
         if not isinstance(item, SwappableShip) and item.VALUE:
             money_label(self, item.position, item.VALUE)
             self.give_money(item.VALUE)
+            ding_sound.play()
 
     def give_money(self, amount):
         self.money += amount
@@ -518,6 +533,7 @@ class Game(object):
             if player.alive:
                 if player.tethered:
                     player.release()
+                    drop_sound.play()
                 else:
                     player.shoot()
             return EVENT_HANDLED

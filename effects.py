@@ -1,6 +1,10 @@
+import pyglet
 import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
+
+
+explosion_sound = pyglet.resource.media('space-explosion.wav', streaming=False)
 
 
 class Explosion(object):
@@ -22,6 +26,10 @@ class Explosion(object):
         self.sprite.position = self.position
         self.sprite.scale = self.MIN_SCALE
         self.world.spawn(self)
+        sound = explosion_sound.play()
+        x, y = self.position - self.world.player.position
+        sound.position = x, y, 0.0
+        sound.min_distance = 300
 
     def draw(self):
         self.sprite.draw()

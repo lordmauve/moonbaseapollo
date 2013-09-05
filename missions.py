@@ -14,6 +14,11 @@ import hud
 DEBUG_MISSIONS = False
 
 
+message_sound = pyglet.resource.media('message.wav', streaming=False)
+goal_sound = pyglet.resource.media('goal.wav', streaming=False)
+
+
+
 def random_positions(num, average_range=1000, standard_deviation=400):
     """Yield num random positions"""
     while num:
@@ -149,13 +154,14 @@ class Mission(Script):
                     pass
 
     @script
-    def say(self, message, colour=hud.DEFAULT_COLOUR, delay=3):
+    def say(self, message, colour=hud.DEFAULT_COLOUR, delay=3, sound=message_sound):
         """Record a message that will be shown on the message window."""
         self.game.say(message, colour=colour)
+        sound.play()
         self.wait(delay)
 
     def goal(self, title):
-        self.say("New mission: " + title, colour=GREEN, delay=0)
+        self.say("New mission: " + title, colour=GREEN, delay=0, sound=goal_sound)
 
     @script
     def spawn(self, *args, **kwargs):
@@ -424,6 +430,7 @@ m = Mission('Diagnostics')
 m.say("{control}: Stand by {name}, we're going to run some diagnostics.", delay=6)
 m.spawn('objects.Marker', v(-300, 200), signpost='Waypoint', persistent=False)
 m.say("{control}: Let's take you out for a spin. Head towards this marker.", delay=0)
+m.goal('Move to the marker')
 m.say('Hold LEFT/RIGHT to rotate. Hold UP to thrust.', colour=WHITE)
 m.player_must_collect('objects.Marker')
 m.spawn('objects.Marker', v(300, -200), signpost='Waypoint', persistent=False)

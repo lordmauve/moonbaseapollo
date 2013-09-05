@@ -7,7 +7,8 @@ FONT_FILENAME = 'gun4fc.ttf'
 RESOURCE_DIRS = [
     'sprites',
     'fonts',
-    'data'
+    'data',
+    'sounds'
 ]
 
 

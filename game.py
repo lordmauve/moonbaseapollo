@@ -45,6 +45,9 @@ RESPAWN_COST = 50
 MISSION_BONUS = 100
 
 
+laser_sound = pyglet.resource.media('laser.wav', streaming=False)
+
+
 @contextmanager
 def log_exceptions():
     """Suppress exceptions but print them to the console."""
@@ -212,6 +215,7 @@ class Player(Collider):
             math.sin(rotation),
             math.cos(rotation)
         )
+        laser_sound.play()
         Bullet(self.world, self.position, dir, self.velocity)
 
     def attach(self, other):

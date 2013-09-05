@@ -551,8 +551,6 @@ m.player_must_collect('objects.Battery')
 m.say("{control}: Thanks, we could have all died without power!")
 
 
-<<<<<<< local
-=======
 m = Mission('Earn credits')
 credits_needed = 100
 m.say('{control}: {name}, we need to collect resources quickly.')
@@ -573,7 +571,6 @@ m.say('{control}: Thanks, {name}. We think we have enough resources stocked now.
 
 # Next mission (draft)
 #
->>>>>>> other
 m = Mission('Rescue an astronaut')
 m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
 m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)

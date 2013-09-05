@@ -1,5 +1,5 @@
 import math
-from collections import namedtuple, defaultdict
+from collections import defaultdict
 from contextlib import contextmanager
 
 import pyglet
@@ -13,14 +13,15 @@ from wasabi.geom.spatialhash import SpatialHash
 from loader import load_centred
 from objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
-    Asteroid, Coin, Marker
+    Asteroid, Coin, Marker, SwappableShip
 )
 from background import Starfield
 from effects import Explosion
 from labels import (
-    TrackingLabel, Signpost, GREEN, GOLD, CYAN, money_label, RED, YELLOW
+    TrackingLabel, Signpost, GOLD, CYAN, money_label, RED
 )
 from hud import HUD
+from ships import CUTTER, SHIPS
 
 
 # Change this before release!
@@ -42,50 +43,6 @@ RESPAWN_COST = 50
 
 # Money awarded for completing a mission
 MISSION_BONUS = 100
-
-
-ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass colour')
-
-CUTTER = ShipModel(
-    name='Cutter',
-    sprite=load_centred('cutter'),
-    rotation=100.0,  # angular velocity, degrees/second
-    acceleration=350.0,  # pixels per second per second
-    max_speed=150.0,  # maximum speed in pixels/second
-    radius=8.0,
-    mass=1,
-    colour=GREEN
-)
-
-
-LUGGER = ShipModel(
-    name='Lugger',
-    sprite=load_centred('lugger'),
-    rotation=200.0,  # angular velocity, degrees/second
-    acceleration=420.0,  # pixels per second per second
-    max_speed=150.0,  # maximum speed in pixels/second
-    radius=14.0,
-    mass=2,
-    colour=RED
-)
-
-
-CLIPPER = ShipModel(
-    name='Clipper',
-    sprite=load_centred('clipper'),
-    rotation=150.0,  # angular velocity, degrees/second
-    acceleration=550.0,  # pixels per second per second
-    max_speed=350,  # maximum speed in pixels/second
-    radius=14.0,
-    mass=1.5,
-    colour=YELLOW
-)
-
-SHIPS = [
-    CUTTER,
-    LUGGER,
-    CLIPPER
-]
 
 
 @contextmanager
@@ -132,6 +89,7 @@ class Player(Collider):
     def set_ship(self, ship):
         self.ship = ship
         self.sprite.image = ship.sprite
+        self.pick_name()
 
     def pick_name(self):
         """Pick a name for this ship.
@@ -210,6 +168,8 @@ class Player(Collider):
             if isinstance(o, (Coin, Marker)):
                 self.world.dispatch_event('on_item_collected', self, o)
                 o.kill()
+            elif isinstance(o, SwappableShip):
+                o.swap()
             elif isinstance(o, Collectable):
                 if not self.tethered:
                     self.attach(o)
@@ -475,7 +435,7 @@ class World(EventDispatcher):
         del self.signposts[1:]
 
     def on_item_collected(self, collector, item):
-        if item.VALUE:
+        if not isinstance(item, SwappableShip) and item.VALUE:
             money_label(self, item.position, item.VALUE)
             self.give_money(item.VALUE)
 

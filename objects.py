@@ -8,6 +8,7 @@ from wasabi.geom.poly import Rect
 
 from effects import Explosion
 from labels import FloatyLabel, GOLD
+from ships import LUGGER, CUTTER
 
 
 class Collider(object):
@@ -125,14 +126,13 @@ class MoonBase(Collector):
         self.do_collisions()
 
 
-class CommsStation(Collector):
+class BaseStation(Collector):
     RADIUS = 30.0
-    name = 'Comm Station 4'
 
     @classmethod
     def load(cls):
         if not hasattr(cls, 'img'):
-            cls.img = load_centred('comms-station')
+            cls.img = load_centred(cls.SPRITE_NAME)
             cls.img.anchor_y = 40
 
     def __init__(self, world, position):
@@ -149,28 +149,21 @@ class CommsStation(Collector):
         self.do_collisions()
 
 
-class SolarFarm(Collector):
+class CommsStation(BaseStation):
+    name = 'Comm Station 4'
+    SPRITE_NAME = 'comms-station'
+
+
+class SolarFarm(BaseStation):
     RADIUS = 30.0
     name = 'Solar Farm'
+    SPRITE_NAME = 'solar-farm'
 
-    @classmethod
-    def load(cls):
-        if not hasattr(cls, 'img'):
-            cls.img = load_centred('solar-farm')
-            cls.img.anchor_y = 40
 
-    def __init__(self, world, position):
-        self.world = world
-        self.position = position
-        self.sprite = pyglet.sprite.Sprite(self.img)
-        self.sprite.position = self.position
-        self.world.spawn(self)
-
-    def draw(self):
-        self.sprite.draw()
-
-    def update(self, dt):
-        self.do_collisions()
+class SpaceDock(BaseStation):
+    RADIUS = 30.0
+    name = 'Spacedock'
+    SPRITE_NAME = 'spacedock'
 
 
 class Moon(Collidable):
@@ -329,6 +322,42 @@ class MedicalCrate(Collectable):
     VALUE = 50
     MASS = 1.5
     RADIUS = 11
+
+
+class SwappableShip(Collectable):
+    VALUE = 100
+    MASS = 1.5
+    RADIUS = 20
+    COLGROUPS = 0x100
+
+    def __init__(self, world, position, rotation=0):
+        self.img = self.ship.sprite
+        super(SwappableShip, self).__init__(world, position, destination='')
+        self.swapped = False
+        self.sprite.rotation = rotation
+        self.angular_velocity = 0
+
+    def swap(self):
+        if self.swapped:
+            return  # Can't swap back
+        s = self.world.player.ship
+        self.sprite.image = s.sprite
+        player = self.world.player
+        self.name = player.name
+        self.world.set_player_ship(self.ship.name)
+        # Exchange positions and rotations and names
+        self.position, player.position = player.position, self.position
+        self.sprite.rotation, player.sprite.rotation = player.sprite.rotation, self.sprite.rotation
+        self.swapped = True
+        self.world.dispatch_event('on_item_collected', player, self)
+
+    def do_collisions(self):
+        pass
+
+
+class Lugger(SwappableShip):
+    ship = LUGGER
+    name = ship.name
 
 
 class Battery(Collectable):
@@ -578,6 +607,7 @@ CLASSES = [
     Marker,
     Satellite,
     SolarFarm,
+    SpaceDock,
     Battery
 ]
 

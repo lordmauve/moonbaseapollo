@@ -221,18 +221,18 @@ class Player(Collider):
         self.position += 0.5 * (u + self.velocity) * ts
 
         direction = v(0, 1).rotated(-self.sprite.rotation)
-        self.tail = self.position - 6 * direction
+        self.tail = self.position - 0.5 * self.ship.radius * direction
         if self.emitter:
             exhaust_particles.unbind_controller(self.emitter)
             self.emitter = None
         if thrusting:
-            self.template_particle.velocity = tuple(-50 * direction + self.velocity) + (0.0,)
+            self.template_particle.velocity = tuple(-0.4 * self.ship.max_speed * direction + self.velocity) + (0.0,)
             self.emitter = StaticEmitter(
                 template=self.template_particle,
                 position=domain.Disc(
                     tuple(self.tail) + (0.0,),
                     (0, 0, 1),
-                    3
+                    0.3 * self.ship.radius
                 ),
                 rotation=domain.Line(
                     (0, 0, -60),

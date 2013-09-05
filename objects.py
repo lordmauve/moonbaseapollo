@@ -292,34 +292,34 @@ class Collectable(Collidable):
 
 class Cheese(Collectable):
     SPRITE_NAME = 'cheese-fragment'
-    VALUE = 20
+    VALUE = 35
 
 
 class Ice(Collectable):
     SPRITE_NAME = 'ice-fragment'
-    VALUE = 15
+    VALUE = 20
 
 
 class Metal(Collectable):
     SPRITE_NAME = 'metal-fragment'
-    VALUE = 30
+    VALUE = 40
 
 
 class Coin(Collectable):
     SPRITE_NAME = 'coin'
-    VALUE = 5
+    VALUE = 10
 
 
 class FrozenFood(Collectable):
     SPRITE_NAME = 'frozen-food'
-    VALUE = 35
+    VALUE = 50
     MASS = 2
     RADIUS = 14
 
 
 class MedicalCrate(Collectable):
     SPRITE_NAME = 'medical-supplies'
-    VALUE = 50
+    VALUE = 80
     MASS = 1.5
     RADIUS = 11
 

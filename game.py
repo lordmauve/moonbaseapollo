@@ -9,6 +9,16 @@ from pyglet import gl
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
+from lepton.system import ParticleSystem
+from lepton.renderer import BillboardRenderer
+from lepton.texturizer import SpriteTexturizer
+from lepton.group import ParticleGroup
+from lepton.emitter import StaticEmitter
+from lepton import controller
+from lepton import domain
+from lepton import Particle
+import lepton
+
 
 from loader import load_centred
 from objects import (
@@ -69,6 +79,26 @@ def log_exceptions():
         traceback.print_exc()
 
 
+exhaust = pyglet.resource.texture('exhaust.png')
+
+exhaust_particles = ParticleGroup(
+    controllers=[
+        controller.Movement(),
+        controller.Lifetime(1),
+        controller.ColorBlender([
+            (0.0, (1.0, 0.3, 0.3, 0.3)),
+            (0.2, (1.0, 0.8, 0.3, 0.3)),
+            (0.5, (1.0, 1.0, 1.0, 0.2)),
+            (1.0, (1.0, 1.0, 1.0, 0.0)),
+        ]),
+        controller.Growth(-3)
+    ],
+    renderer=BillboardRenderer(
+        SpriteTexturizer(exhaust.id)
+    ),
+)
+
+
 class Player(Collider):
     ship_count = defaultdict(int)
     TETHER_FORCE = 0.5
@@ -90,6 +120,7 @@ class Player(Collider):
         self.MASS = self.ship.mass
         self.world.spawn(self)
         self.tethered = None
+        self.emitter = None
 
         self.pick_name()
 
@@ -98,6 +129,16 @@ class Player(Collider):
             self.name,
             follow=self,
             colour=self.ship.colour
+        )
+
+        self.setup_particles()
+
+    def setup_particles(self):
+        self.template_particle = Particle(
+            position=(0, 200, 0),
+            velocity=(0, 0, 0),
+            size=(5, 5, 5),
+            color=(1, 0.5, 0.3)
         )
 
     def set_ship(self, ship):
@@ -159,6 +200,10 @@ class Player(Collider):
 
         if self.world.keyboard[key.UP]:
             self.thrust(ts)
+            thrusting = True
+        else:
+            thrusting = False
+
         if self.world.keyboard[key.LEFT]:
             self.rotate_acw(ts)
         if self.world.keyboard[key.RIGHT]:
@@ -174,6 +219,28 @@ class Player(Collider):
 
         # Constant acceleration formula
         self.position += 0.5 * (u + self.velocity) * ts
+
+        direction = v(0, 1).rotated(-self.sprite.rotation)
+        self.tail = self.position - 6 * direction
+        if self.emitter:
+            exhaust_particles.unbind_controller(self.emitter)
+            self.emitter = None
+        if thrusting:
+            self.template_particle.velocity = tuple(-50 * direction + self.velocity) + (0.0,)
+            self.emitter = StaticEmitter(
+                template=self.template_particle,
+                position=domain.Disc(
+                    tuple(self.tail) + (0.0,),
+                    (0, 0, 1),
+                    3
+                ),
+                rotation=domain.Line(
+                    (0, 0, -60),
+                    (0, 0, 60),
+                ),
+                rate=100
+            )
+            exhaust_particles.bind_controller(self.emitter)
 
         self.do_collisions()
 
@@ -199,6 +266,7 @@ class Player(Collider):
         self.world.dispatch_event('on_player_death')
 
     def kill(self):
+        exhaust_particles.unbind_controller(self.emitter)
         self.world.kill(self)
         self.release()
         self.alive = False
@@ -406,6 +474,8 @@ class World(EventDispatcher):
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def update(self, ts):
+        lepton.default_system.update(ts)
+
         for o in self.non_collidable_objects:
             o.update(ts)
 
@@ -428,6 +498,10 @@ class World(EventDispatcher):
         gl.glClearColor(0, 0, 0, 1)
         self.camera.set_matrix()
         self.starfield.draw(self.camera)
+
+        gl.glEnable(gl.GL_TEXTURE_2D)
+        gl.glEnable(gl.GL_BLEND)
+        lepton.default_system.draw()
 
         vp = self.camera.get_viewport()
         culled = self.spatial_hash.potential_intersection(vp)

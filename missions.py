@@ -573,17 +573,18 @@ m.say('{control}: Thanks, {name}. We think we have enough resources stocked now.
 #
 m = Mission('Rescue an astronaut')
 m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
+respawn_comm_station(m)
 m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)
 m.fail_if_object_destroyed(id='astronaut')
 m.say('Comm Station 4: {astronaut.name} got hit by an exhaust jet while on a space walk.', delay=1)
 m.say('Comm Station 4: We need you to stage a rescue mission, FAST!', delay=0)
 m.goal('Rescue {astronaut.name}')
-with m.time_limit(60):
+with m.time_limit(100):
     m.player_must_tractor('astronaut')
 m.show_signpost('comm-station-4')
 m.say('Comm Station 4: We have a sick bay here. Hurry!', delay=0)
 m.goal('Return {astronaut.name} to Comm Station 4')
-with m.time_limit(60):
+with m.time_limit(100):
     m.player_must_collect('objects.Astronaut')
 m.say('Comm Station 4: Stand by, {name}.', delay=10)
 m.say("Comm Station 4: {astronaut.name} isn't breathing...", delay=0.5)
@@ -591,7 +592,7 @@ m.say("Comm Station 4: We need you to fetch adrenaline from {control}, stat!")
 m.spawn_above_moonbase('objects.MedicalCrate', destination='comm-station-4', signpost="Medical crate", id='medicrate')
 m.fail_if_object_destroyed(id='medicrate')
 m.goal('Fetch medical supplies')
-with m.time_limit(75):
+with m.time_limit(180):
     m.player_must_collect('objects.MedicalCrate')
 m.say('Comm Station 4: Thanks, {name}.', delay=1)
 m.say('Comm Station 4: Administering adrenaline.', delay=10)

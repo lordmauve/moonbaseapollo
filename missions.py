@@ -122,6 +122,7 @@ class Mission(Script):
         self.need_class = None
         self.must_tractor = None
         self.must_release = None
+        self.must_earn = 0
         self.critical_objects = []
         self.target_objects = []
         self.extra_params = {}
@@ -277,6 +278,11 @@ class Mission(Script):
         self.target_objects.append(id)
 
     @script
+    def player_must_earn(self, credits):
+        """Wait for player to earn certain number of credits"""
+        self.must_earn = credits
+
+    @script
     def set_time_limit(self, t):
         """Set a time limit to complete the next activity."""
         self.time_limit = int(t)
@@ -324,6 +330,12 @@ class Mission(Script):
                 self.next()
             else:
                 self.game.say('Good work! You need to collect %d more.' % self.needed, colour=GREEN)
+        elif self.must_earn > 0:
+            self.must_earn -= item.VALUE
+            if self.must_earn <= 0:
+                self.next()
+            else:
+                self.game.say('Good work! You need to collect %d more credits.' % self.must_earn)
 
     def on_object_shot(self, item):
         try:
@@ -539,6 +551,29 @@ m.player_must_collect('objects.Battery')
 m.say("{control}: Thanks, we could have all died without power!")
 
 
+<<<<<<< local
+=======
+m = Mission('Earn credits')
+credits_needed = 100
+m.say('{control}: {name}, we need to collect resources quickly.')
+m.say('{control}: Collect %d credits as soon as possible' % credits_needed,
+      delay=1)
+asteroid_types = [
+    ('objects.IceAsteroid', 'Ice'),
+    ('objects.CheeseAsteroid', 'Cheese'),
+    ('objects.MetalAsteroid', 'Metal')
+]
+for p in random_positions(4):
+    ast = random.choice(asteroid_types)
+    m.spawn(ast[0], p, signpost=ast[1])
+m.goal('Earn %d credits' % credits_needed)
+m.player_must_earn(credits_needed)
+m.say('{control}: Thanks, {name}. We think we have enough resources stocked now.')
+
+
+# Next mission (draft)
+#
+>>>>>>> other
 m = Mission('Rescue an astronaut')
 m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
 m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)

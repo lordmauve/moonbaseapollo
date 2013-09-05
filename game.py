@@ -365,6 +365,7 @@ class World(EventDispatcher):
             self.player = Player(self, 0, 180, ship=self.current_ship)
             self.camera.track(self.player)
         else:
+            self.hud.set_money(0)
             self.say("You don't have enough credits to continue.", colour=RED)
             self.say("Game over", colour=RED)
 

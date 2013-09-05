@@ -50,7 +50,7 @@ CUTTER = ShipModel(
     name='Cutter',
     sprite=load_centred('cutter'),
     rotation=100.0,  # angular velocity, degrees/second
-    acceleration=15.0,  # pixels per second per second
+    acceleration=350.0,  # pixels per second per second
     max_speed=150.0,  # maximum speed in pixels/second
     radius=8.0,
     mass=1,
@@ -62,7 +62,7 @@ LUGGER = ShipModel(
     name='Lugger',
     sprite=load_centred('lugger'),
     rotation=200.0,  # angular velocity, degrees/second
-    acceleration=10.0,  # pixels per second per second
+    acceleration=420.0,  # pixels per second per second
     max_speed=150.0,  # maximum speed in pixels/second
     radius=14.0,
     mass=2,
@@ -74,12 +74,18 @@ CLIPPER = ShipModel(
     name='Clipper',
     sprite=load_centred('clipper'),
     rotation=150.0,  # angular velocity, degrees/second
-    acceleration=20.0,  # pixels per second per second
-    max_speed=250,  # maximum speed in pixels/second
+    acceleration=550.0,  # pixels per second per second
+    max_speed=350,  # maximum speed in pixels/second
     radius=14.0,
     mass=1.5,
     colour=YELLOW
 )
+
+SHIPS = [
+    CUTTER,
+    LUGGER,
+    CLIPPER
+]
 
 
 @contextmanager
@@ -238,7 +244,7 @@ class Player(Collider):
             math.sin(rotation) * accel,
             math.cos(rotation) * accel
         )
-        self.velocity += a
+        self.velocity += a * ts
 
     def shoot(self):
         rotation = math.radians(self.sprite.rotation)
@@ -343,6 +349,13 @@ class World(EventDispatcher):
 
         self.setup_projection_matrix()
         self.setup_world()
+
+    def set_player_ship(self, name):
+        for s in SHIPS:
+            if s.name.lower() == name.lower():
+                self.current_ship = s
+                self.player.set_ship(s)
+                break
 
     def spawn_player(self, freebie=False):
         if freebie or self.money >= RESPAWN_COST:
@@ -551,14 +564,11 @@ class Game(object):
             elif symbol == key.F5:
                 self.reload_missions()
             elif symbol == key.F6:
-                self.world.current_ship = CUTTER
-                self.world.player.set_ship(CUTTER)
+                self.world.set_player_ship('cutter')
             elif symbol == key.F7:
-                self.world.current_ship = LUGGER
-                self.world.player.set_ship(LUGGER)
+                self.world.set_player_ship('lugger')
             elif symbol == key.F8:
-                self.world.current_ship = CLIPPER
-                self.world.player.set_ship(CLIPPER)
+                self.world.set_player_ship('clipper')
 
     def reload_missions(self):
         if self.mission:

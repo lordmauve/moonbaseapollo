@@ -330,9 +330,9 @@ class Bullet(Collider):
                 o.fragment(self.position)
 
             if isinstance(o, (Asteroid, Moon)):
-                Explosion(self.world, self.position)
+                Explosion(self.world, self.position, particles=True)
             else:
-                Explosion(self.world, self.position, particles=False)
+                Explosion(self.world, self.position)
 
             self.kill()
             break

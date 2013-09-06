@@ -19,7 +19,7 @@ class Explosion(object):
         if not hasattr(cls, 'img'):
             cls.img = load_centred('explosion')
 
-    def __init__(self, world, position, particles=True):
+    def __init__(self, world, position, particles=False):
         self.world = world
         self.position = v(position)
         self.load()

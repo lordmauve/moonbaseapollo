@@ -195,6 +195,38 @@ class Signpost(object):
 
         self.label.y = ly + (10 if anchor_y == 'bottom' else -10)
 
+        self.fix_overlap()
         self.sprite.draw()
         self.label.draw()
 
+    def overlaps(self, signpost):
+        bottom_y = self.label.y
+        top_y = self.label.y + self.label.content_height
+        left_x = self.label.x
+        right_x = self.label.x + self.label.content_width
+
+        label = signpost.label
+        margin = 10
+        if label.y <= bottom_y < label.y + label.content_height:
+            if label.x <= left_x < label.x + label.content_width + margin:
+                return True
+            elif label.x <= right_x < label.x + label.content_width + margin:
+                return True
+        elif label.y <= top_y < label.y + label.content_height:
+            if label.x <= left_x < label.x + label.content_width + margin:
+                return True
+            elif label.x <= right_x < label.x + label.content_width + margin:
+                return True
+        return False
+
+    def fix_overlap(self):
+        signposts = [l for l in self.world.objects if isinstance(l, Signpost) and l is not self]
+        for s in signposts:
+            # print self.label.text, s.label.text
+            if self.overlaps(s):
+                # print self.label.text, self.label.x, self.label.y, 'overlap', s.label.text, s.label.x, s.label.y
+                if self.label.anchor_y == 'top':
+                    self.label.y -= self.label.content_height + 5
+                else:
+                    self.label.y += s.label.content_height + 5
+                break

@@ -9,18 +9,15 @@ from pyglet import gl
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
-from lepton.system import ParticleSystem
-from lepton.renderer import BillboardRenderer
-from lepton.texturizer import SpriteTexturizer
-from lepton.group import ParticleGroup
-from lepton.emitter import StaticEmitter
-from lepton import controller
-from lepton import domain
-from lepton import Particle
-import lepton
 
-
+# This has to be the first import, as it sets up the pyglet resource path
 from loader import load_centred
+
+from particles import  (
+    StaticEmitter, domain, Particle, particle_system,
+    exhaust_particles
+)
+
 from objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
     Asteroid, Coin, Marker, SwappableShip
@@ -77,26 +74,6 @@ def log_exceptions():
     except Exception:
         import traceback
         traceback.print_exc()
-
-
-exhaust = pyglet.resource.texture('exhaust.png')
-
-exhaust_particles = ParticleGroup(
-    controllers=[
-        controller.Movement(),
-        controller.Lifetime(1),
-        controller.ColorBlender([
-            (0.0, (1.0, 0.3, 0.3, 0.3)),
-            (0.2, (1.0, 0.8, 0.3, 0.3)),
-            (0.5, (1.0, 1.0, 1.0, 0.2)),
-            (1.0, (1.0, 1.0, 1.0, 0.0)),
-        ]),
-        controller.Growth(-3)
-    ],
-    renderer=BillboardRenderer(
-        SpriteTexturizer(exhaust.id)
-    ),
-)
 
 
 class Player(Collider):
@@ -226,13 +203,13 @@ class Player(Collider):
             exhaust_particles.unbind_controller(self.emitter)
             self.emitter = None
         if thrusting:
-            self.template_particle.velocity = tuple(-0.4 * self.ship.max_speed * direction + self.velocity) + (0.0,)
+            self.template_particle.velocity = tuple(-0.6 * self.ship.max_speed * direction + self.velocity) + (0.0,)
             self.emitter = StaticEmitter(
                 template=self.template_particle,
                 position=domain.Disc(
                     tuple(self.tail) + (0.0,),
                     (0, 0, 1),
-                    0.3 * self.ship.radius
+                    0.5 * self.ship.radius
                 ),
                 rotation=domain.Line(
                     (0, 0, -60),
@@ -475,7 +452,7 @@ class World(EventDispatcher):
         gl.glMatrixMode(gl.GL_MODELVIEW)
 
     def update(self, ts):
-        lepton.default_system.update(ts)
+        particle_system.update(ts)
 
         for o in self.non_collidable_objects:
             o.update(ts)
@@ -502,7 +479,7 @@ class World(EventDispatcher):
 
         gl.glEnable(gl.GL_TEXTURE_2D)
         gl.glEnable(gl.GL_BLEND)
-        lepton.default_system.draw()
+        particle_system.draw()
 
         vp = self.camera.get_viewport()
         culled = self.spatial_hash.potential_intersection(vp)

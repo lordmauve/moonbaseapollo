@@ -114,7 +114,7 @@ class Mission(Script):
                 self.on_object_shot, self.on_item_collected,
                 self.on_object_tractored, self.on_region_entered,
                 self.on_astronaut_death, self.on_object_destroyed,
-                self.on_object_released
+                self.on_object_released, self.on_player_death
             )
             self.handlers_installed = True
         self.hud = self.game.world.hud
@@ -394,6 +394,9 @@ class Mission(Script):
 
     def on_failure(self):
         self.game.say("{control}: Mission failed! Try again.", colour=RED)
+
+    def on_player_death(self):
+        self.restart()
 
     def finish(self):
         pyglet.clock.unschedule(self.next)

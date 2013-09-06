@@ -266,7 +266,8 @@ class Player(Collider):
         self.world.dispatch_event('on_player_death')
 
     def kill(self):
-        exhaust_particles.unbind_controller(self.emitter)
+        if self.emitter:
+            exhaust_particles.unbind_controller(self.emitter)
         self.world.kill(self)
         self.release()
         self.alive = False

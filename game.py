@@ -25,7 +25,7 @@ from objects import (
 from background import Starfield
 from effects import Explosion
 from labels import (
-    TrackingLabel, Signpost, GOLD, CYAN, money_label, RED
+    TrackingLabel, Signpost, GOLD, CYAN, money_label, RED, FONT_NAME, GREY, WHITE
 )
 from hud import HUD
 from ships import CUTTER, SHIPS
@@ -38,6 +38,8 @@ WIDTH = 1024
 HEIGHT = 600
 
 FPS = 60
+
+MOONBASE_NAME = 'Moonbase Apollo'
 
 # Reducing this number makes the game much easier
 NUM_ASTEROIDS = 700
@@ -405,14 +407,14 @@ class World(EventDispatcher):
         moon = Moon(self)
         TrackingLabel(
             self,
-            'Moonbase Alpha',
+            MOONBASE_NAME,
             follow=moon.moonbase,
             offset=v(30, 15)
         )
 
         Signpost(
             self,
-            'Moonbase Alpha',
+            MOONBASE_NAME,
             moon.moonbase
         )
         self.moon = moon
@@ -450,9 +452,12 @@ class World(EventDispatcher):
 
     def setup_projection_matrix(self):
         gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glLoadIdentity()
         gl.glOrtho(
-            WIDTH * -0.5, WIDTH * 0.5,
-            HEIGHT * -0.5, HEIGHT * 0.5,
+#            WIDTH * -0.5, WIDTH * 0.5,
+            0, WIDTH,
+            0, HEIGHT,
+#            HEIGHT * -0.5, HEIGHT * 0.5,
             -100, 100
         )
         gl.glMatrixMode(gl.GL_MODELVIEW)
@@ -480,6 +485,12 @@ class World(EventDispatcher):
     def draw(self):
         # draw a black background
         gl.glClearColor(0, 0, 0, 1)
+        gl.glClear(gl.GL_COLOR_BUFFER_BIT | gl.GL_DEPTH_BUFFER_BIT)
+#        gl.glMatrixMode(gl.GL_PROJECTION)
+#        gl.glLoadIdentity()
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glLoadIdentity()
+        gl.glDisable(gl.GL_DEPTH_TEST)
         self.camera.set_matrix()
         self.starfield.draw(self.camera)
 
@@ -500,7 +511,7 @@ class World(EventDispatcher):
     def say(self, message, colour=CYAN):
         msg = message.format(
             name=self.player.name,
-            control='Moonbase Alpha'
+            control=MOONBASE_NAME,
         )
         self.hud.append_message(msg, colour=colour)
 
@@ -540,18 +551,10 @@ World.register_event_type('on_region_entered')
 World.register_event_type('on_astronaut_death')
 
 
-class Game(object):
-    def __init__(self, windowed=True, mission=1):
-        global WIDTH, HEIGHT
-        if windowed:
-            self.window = pyglet.window.Window(
-                width=WIDTH,
-                height=HEIGHT
-            )
-        else:
-            self.window = pyglet.window.Window(fullscreen=True)
-            WIDTH = self.window.width
-            HEIGHT = self.window.height
+class GameState(object):
+    def __init__(self, game, mission=1):
+        self.game = game
+        self.window = game.window
         self.keyboard = key.KeyStateHandler()
 
         # load the sprites for objects
@@ -563,8 +566,10 @@ class Game(object):
         self.world.set_handler('on_player_death', self.on_player_death)
 
         self.mission = None
+        self.set_mission(mission)
+
+    def set_mission(self, mission):
         self.mission_number = mission - 1
-        self.start()
 
     def on_player_death(self):
         # Wait a couple of seconds then respawn the player
@@ -573,7 +578,7 @@ class Game(object):
     def say(self, message, colour=CYAN):
         params = dict(
             name=self.world.player.name,
-            control='Moonbase Alpha'
+            control=MOONBASE_NAME
         )
         if self.mission:
             params.update(self.mission.extra_params)
@@ -675,11 +680,62 @@ class Game(object):
         self.start_mission()
 
     def start(self):
-        self.window.push_handlers(self.keyboard, on_draw=self.on_draw)
+        self.window.push_handlers(
+            self.keyboard
+        )
         self.window.push_handlers(self.on_key_press)
         pyglet.clock.schedule_interval(self.update, 1.0 / FPS)
         self.start_mission()
 
+    def stop(self):
+        self.window.pop_handlers()
+        self.window.pop_handlers()
+        pyglet.clock.unschedule(self.update)
+
+    def draw(self):
+        self.world.draw()
+
+    def update(self, ts):
+        self.world.update(ts)
+
+
+class Game(object):
+    def __init__(self, windowed):
+        global WIDTH, HEIGHT
+        if windowed:
+            self.window = pyglet.window.Window(
+                width=WIDTH,
+                height=HEIGHT
+            )
+        else:
+            self.window = pyglet.window.Window(fullscreen=True)
+            WIDTH = self.window.width
+            HEIGHT = self.window.height
+        self.game = None
+        self.menu = None
+        self.gamestate = None
+
+        self.window.push_handlers(self.on_draw)
+
+    def start_mission(self, mission=1):
+        if self.game:
+            self.game.set_mission(mission)
+        else:
+            self.game = GameState(self, mission)
+        self.set_gamestate(self.game)
+
+    def set_gamestate(self, gamestate):
+        if self.gamestate:
+            self.gamestate.stop()
+        self.gamestate = gamestate
+        if gamestate:
+            self.gamestate.start()
+
+    def start_menu(self):
+        self.menu = MenuState(self)
+        self.set_gamestate(self.menu)
+
+    def run(self):
         while True:
             try:
                 pyglet.app.run()
@@ -690,22 +746,95 @@ class Game(object):
                 break
 
     def on_draw(self):
-        self.window.clear()
-        self.world.draw()
+        self.gamestate.draw()
 
-    def update(self, ts):
-        self.world.update(ts)
+
+class MenuState(object):
+    def __init__(self, game):
+        self.game = game
+        self.window = game.window
+
+        self.actions = [
+            ('New game', self.on_new_game),
+            ('Quit', self.on_quit),
+        ]
+        self.selected = 0
+
+        self.starfield = Starfield()
+        self.camera = Camera()
+        self.setup_menu()
+
+    def on_new_game(self):
+        self.game.start_mission()
+
+    def on_quit(self):
+        pyglet.app.exit()
+
+    def setup_menu(self):
+        self.batch = pyglet.graphics.Batch()
+        self.logo = pyglet.sprite.Sprite(load_centred('logo'), x=WIDTH // 2 - 20, y=HEIGHT - 200, batch=self.batch)
+        self.labels = []
+
+        for i, (name, _) in enumerate(self.actions):
+            self.labels.append(
+                pyglet.text.Label(
+                    name,
+                    font_name=FONT_NAME,
+                    font_size=20,
+                    color=GREY + (255,),
+                    anchor_x='center',
+                    x=WIDTH // 2,
+                    y=HEIGHT - 350 - (50 * i),
+                    batch=self.batch
+                )
+            )
+
+    def on_key_press(self, symbol, modifiers):
+        if symbol == key.UP:
+            self.selected = (self.selected - 1) % len(self.actions)
+        elif symbol == key.DOWN:
+            self.selected = (self.selected + 1) % len(self.actions)
+        elif symbol == key.ENTER:
+            self.actions[self.selected][1]()
+
+    def start(self):
+        self.window.push_handlers(
+            self.on_key_press
+        )
+
+    def stop(self):
+        self.window.pop_handlers()
+
+    def draw(self):
+        self.window.clear()
+        self.camera.position += v(1, 0)
+        self.camera.set_matrix()
+        self.starfield.draw(self.camera)
+        gl.glLoadIdentity()
+        for i, l in enumerate(self.labels):
+            if i == self.selected:
+                c = WHITE
+            else:
+                c = GREY
+            l.color = c + (255,)
+
+        self.batch.draw()
 
 
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser('%prog [-f] [--mission <num>]')
     parser.add_option('-f', '--fullscreen', action='store_true', help='Start in full screen mode')
-    parser.add_option('--mission', action='store', type='int', help='Mission to start at.', default=1)
+    parser.add_option('--mission', action='store', type='int', help='Mission to start at.', default=None)
 
     options, args = parser.parse_args()
 
     game = Game(
-        windowed=not options.fullscreen,
-        mission=options.mission
+        windowed=not options.fullscreen
     )
+    if options.mission:
+        game.start_mission(options.mission)
+    else:
+        game.start_menu()
+
+    game.run()

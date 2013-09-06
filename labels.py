@@ -229,4 +229,5 @@ class Signpost(object):
                     self.label.y -= self.label.content_height + 5
                 else:
                     self.label.y += s.label.content_height + 5
+                self.fix_overlap()
                 break

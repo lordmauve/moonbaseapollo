@@ -238,7 +238,7 @@ class Player(Collider):
             break
 
     def explode(self):
-        Explosion(self.world, self.position)
+        Explosion(self.world, self.position, particle_amount=5, particle_colour=self.ship.colour)
         self.kill()
         self.world.dispatch_event('on_player_death')
 
@@ -330,7 +330,7 @@ class Bullet(Collider):
                 o.fragment(self.position)
 
             if isinstance(o, (Asteroid, Moon)):
-                Explosion(self.world, self.position, particles=True)
+                Explosion(self.world, self.position, particle_amount=10)
             else:
                 Explosion(self.world, self.position)
 

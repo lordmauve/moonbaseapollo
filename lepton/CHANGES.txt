@@ -1,0 +1,120 @@
+2009-7-18 -- 1.0b2
+
+- Examples are now installed as a subpackage and importable, thus may be
+  run using: python -m lepton.examples.vortex
+- Add notes about ubuntu/debian package dependancies to readme
+
+2009-6-26 -- 1.0b1
+
+- Add Drag controller to simulate viscous drag (i.e., wind, water)
+- Add vortex example to show off drag controller
+- Improve numeric stability of Magnet controller (changes charge value scale)
+- Replace inner_cutoff parameter of magnet controller with variable epsilon
+- Implement SpriteTexturizer, refactor examples to use it
+- Add letters example to show off texture atlas support
+- Add texture support to PointRenderer via point sprites
+- Add create_point_texture() function for generating blended
+  point textures. Refactor fire, smoke, and other examples to use them.
+- Implement FlipBookTexturizer for particle texture animation
+- Add animated logo example to show off FlipBookTexturizer
+- ParticleGroup.new() now accepts keyword args for particle attributes.
+- Add generate example
+
+2009-3-15 -- 0.9a
+
+- Fix reference leaks in particle emission and domain generate methods
+- Plane domains are now proper half-space geometries so they support 
+  __contains__, which means they can be used with the Collector controller.
+- Implement Point domain.
+- Implement arbitrarily orientable Disc, Cylinder and Cone domains.
+- Add tunnel example.
+- Implement new closest_point_to() methods for various domains.
+- Fix distribution of points generated in a Sphere domain with a nonzero
+  inner radius.
+- Refactor renderer/group binding to avoid circrefs and an infinite loop
+  bug. This also simplifies the API. Thanks to Ken Lauer for the report.
+- Fix color bug in the billboard renderer, thanks again to Ken Lauer.
+- Add ParticleSystem.run_ahead() method to warm up the particle system
+  or "fast forward" the simulation.
+- Add Magnet controller and example. Thanks to Andrew Charles for the
+  initial implementation of these.
+- Various code cleanups and fixes for building on Windows. Thanks to
+  Jussi Lepistö.
+
+2009-1-28 -- 0.8.1a
+
+- Adjusted code so it compiles with Visual C++ 2008.
+  Big thanks to Jussi Lepistö (Knarkles) for doing this work!
+- Use PyOS_snprintf instead of snprintf for better portability.
+
+2009-1-7 -- 0.8a
+
+- Fixed accuracy of bounce controller so that particles are much less likely
+  to escape from a container domain. (Thanks to dugres for reporting the bug)
+- Fixed bug in Sphere.intersect() where it would return bogus vectors such
+  as (nan,nan,nan) for stationary particles in some instances. This allowed
+  an improvement to the bouncy example to further prevent errant particles.
+- Collector controller ported to C
+- Bounce controller ported to C
+- Add 2D splode example to demonstrate how to use lepton with the default
+  pyglet OpenGL projection.
+- Allow basic attribute access for the C controllers from Python
+  (More work is needed here for more complex attributes, like vectors)
+
+2008-12-28 -- 0.7a
+
+- Fader controller ported to C
+- Added per-particle emitter and fireworks example
+- Port Line and Plane domains to C
+- Port Box domain to C, rename to AABox. deprecate domain.Box for reuse later
+- Port Sphere domain to C, add support for inner and outer radius for
+  spherical shells
+- Bounce controller gets separate bounce and friction parameters
+- Improve lame pygame fill example to use new bounce features and be less lame
+  (2.5D, suhweet!)
+- Implement particle proxy and vector object pools to reduce or eliminate
+  object allocation when iterating and traversing particles from python
+- Optimize particle group C typecheck function
+
+2008-08-17 -- 0.6a
+
+- Remove inline redefinition cruft that was causing problems building on
+  win32 (Thanks to Fabrice Capiez for help debugging)
+- Add pygame bubbles demo to show off the pygame blit renderer
+- Fix some bugs in the blit renderer
+- Add a surface cache to the blit renderer to improve performance when
+  rotation and scaling are enabled.
+
+2008-08-16 -- 0.5a
+
+- (Hopefully) Fix "initializer element is not constant" error compiling 
+  on Windows with Python binary release
+- Fix bug building on Mac with Python Binary release (issue #1)
+- Add particle growth controller
+- Add explosion example
+- Add clamp() method to particle vectors
+- Add simple pygame fill example
+
+2008-08-11 -- 0.4a
+
+- Fix setup.py to support cygwin on windows (Still need to work on VC)
+- Implement rotation in billboard renderer
+- Allow dynamic modifications of emitter template and deviation
+- Add pygame renderers
+- Fix some renderer bugs on win32
+- Add flyby example
+- Add WIP bonk example game
+
+2008-08-06 -- 0.3a (pre)release
+
+- Fix crash-bug in StaticEmitter_dealloc(), thanks to Drew Perttula
+
+2008-08-06 -- 0.2a (pre)release
+
+- Spruce up the setup.py to add include and library dirs for particular oses
+- Fix imports in examples and clean up a little
+- Add boring license headers
+
+2008-08-06 -- 0.1a (pre)release
+
+- Throw it over the wall...duck!

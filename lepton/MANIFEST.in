@@ -1,0 +1,17 @@
+include *.txt
+include MANIFEST.in MANIFEST
+
+recursive-include glew *
+recursive-include lepton *
+recursive-include test *
+recursive-include examples *
+prune examples/games
+
+prune **/.svn
+global-exclude *.pyc 
+global-exclude *.pyo
+global-exclude *.o
+global-exclude *.so
+global-exclude *.out
+global-exclude .DS_Store
+

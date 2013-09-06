@@ -6,4 +6,4 @@ syntax: glob
 source/*
 grabs/*
 concept/*.png
-lepton/
+lepton/build

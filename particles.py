@@ -60,7 +60,7 @@ exhaust_particles = ParticleGroup(
 explosion_particles = ParticleGroup(
     controllers=[
         controller.Movement(),
-        controller.Lifetime(1),
+        controller.Lifetime(2),
         controller.Fader(
             start_alpha=1,
             fade_out_start=1,

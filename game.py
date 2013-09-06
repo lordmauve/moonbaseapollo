@@ -325,13 +325,19 @@ class Bullet(Collider):
     def do_collisions(self):
         for o in self.iter_collisions():
             self.world.dispatch_event('on_object_shot', o)
-            self.kill()
+
             if isinstance(o, Asteroid):
                 o.fragment(self.position)
+
+            if isinstance(o, (Asteroid, Moon)):
+                Explosion(self.world, self.position)
+            else:
+                Explosion(self.world, self.position, particles=False)
+
+            self.kill()
             break
 
     def kill(self):
-        Explosion(self.world, self.position)
         self.world.kill(self)
 
 

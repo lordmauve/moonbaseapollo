@@ -19,7 +19,7 @@ class Explosion(object):
         if not hasattr(cls, 'img'):
             cls.img = load_centred('explosion')
 
-    def __init__(self, world, position):
+    def __init__(self, world, position, particles=True):
         self.world = world
         self.position = v(position)
         self.load()
@@ -32,19 +32,32 @@ class Explosion(object):
         x, y = self.position - self.world.player.position
         sound.position = x, y, 0.0
         sound.min_distance = 300
-        self.spawn_particles()
+        if particles:
+            self.spawn_particles()
+        else:
+            self.emitter = None
 
     def spawn_particles(self):
         self.emitter = StaticEmitter(
             template=Particle(
                 position=tuple(self.position) + (0,),
-                color=(0.9, 0.9, 0.9),
-                size=(5, 5, 5),
+                color=(0.6, 0.6, 0.6),
             ),
-            deviation=Particle(
-                velocity=(50, 50, 0),
+            size=domain.Line(
+                (10, 10, 0),
+                (3, 3, 0),
             ),
-            rate=20
+            rotation=domain.Line(
+                (0, 0, -10),
+                (0, 0, 10),
+            ),
+            velocity=domain.Disc(
+                (0, 0, 0),
+                (0, 0, 1),
+                100,
+                40
+            ),
+            rate=100
         )
         explosion_particles.bind_controller(self.emitter)
 
@@ -53,7 +66,7 @@ class Explosion(object):
 
     def update(self, ts):
         self.age += ts
-        if self.age > 0.3 and self.emitter:
+        if self.age > 0.1 and self.emitter:
             explosion_particles.unbind_controller(self.emitter)
             self.emitter = None
         if self.age > self.MAX_AGE:

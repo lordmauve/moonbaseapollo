@@ -3,6 +3,8 @@ import pyglet.sprite
 from loader import load_centred
 from wasabi.geom import v
 
+from particles import StaticEmitter, explosion_particles, Particle, domain
+
 
 explosion_sound = pyglet.resource.media('space-explosion.wav', streaming=False)
 
@@ -30,12 +32,30 @@ class Explosion(object):
         x, y = self.position - self.world.player.position
         sound.position = x, y, 0.0
         sound.min_distance = 300
+        self.spawn_particles()
+
+    def spawn_particles(self):
+        self.emitter = StaticEmitter(
+            template=Particle(
+                position=tuple(self.position) + (0,),
+                color=(0.9, 0.9, 0.9),
+                size=(5, 5, 5),
+            ),
+            deviation=Particle(
+                velocity=(50, 50, 0),
+            ),
+            rate=20
+        )
+        explosion_particles.bind_controller(self.emitter)
 
     def draw(self):
         self.sprite.draw()
 
     def update(self, ts):
         self.age += ts
+        if self.age > 0.3 and self.emitter:
+            explosion_particles.unbind_controller(self.emitter)
+            self.emitter = None
         if self.age > self.MAX_AGE:
             self.world.kill(self)
         self.sprite.scale = self.MIN_SCALE + self.age * self.EXPANSION

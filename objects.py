@@ -505,9 +505,9 @@ class Droid(Collidable):
         if self.player_in_range:
             # make the droid madder as it gets shot
             if self.health < 50:
-                freq = 0.3
+                freq = 0.4
             elif self.health < 100:
-                freq = 0.15
+                freq = 0.2
             elif self.health < 150:
                 freq = 0.1
             else:

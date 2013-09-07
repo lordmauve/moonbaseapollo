@@ -31,6 +31,57 @@ class Collider(object):
         return False
 
 
+class Bullet(Collider):
+    RADIUS = 3
+    SPEED = 200
+
+    COLGROUPS = 0x8
+    COLMASK = 0xfd
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'BULLET'):
+            cls.BULLET = load_centred('bullet')
+
+    def __init__(self, world, pos, dir, initial_velocity=v(0, 0)):
+        self.world = world
+        self.position = pos
+        self.velocity = (dir * self.SPEED + initial_velocity)
+        self.sprite = pyglet.sprite.Sprite(Bullet.BULLET)
+        self.sprite.position = pos.x, pos.y
+        self.sprite.rotation = 90 - dir.angle
+        self.world.spawn(self)
+
+    def draw(self):
+        self.sprite.position = self.position
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.position += self.velocity * ts
+        self.do_collisions()
+
+    def do_collisions(self):
+        for o in self.iter_collisions():
+            self.world.dispatch_event('on_object_shot', o)
+
+            if isinstance(o, Asteroid):
+                o.fragment(self.position)
+
+            if isinstance(o, (Asteroid, Moon)):
+                Explosion(self.world, self.position, particle_amount=10)
+            else:
+                Explosion(self.world, self.position)
+
+            if hasattr(o, 'shot'):
+                o.shot()
+
+            self.kill()
+            break
+
+    def kill(self):
+        self.world.kill(self)
+
+
 class Collidable(Collider):
     """Objects that can be collided with.
 
@@ -421,6 +472,68 @@ class Satellite(Collectable):
         super(Satellite, self).update(dt)
 
 
+class Droid(Collidable):
+    RADIUS = 40
+
+    @classmethod
+    def load(cls):
+        if not hasattr(cls, 'img'):
+            cls.DROID_OK = load_centred('droid-ok')
+            cls.DROID_BERSERK = load_centred('droid-beserk')
+
+    def __init__(self, world, position, velocity=v(0, 0)):
+        self.world = world
+        self.position = position
+        self.velocity = velocity
+        self.sprite = pyglet.sprite.Sprite(self.DROID_OK)
+        self.rotation = random.random() * 360
+        self.angular_velocity = 200
+        self.world.spawn(self)
+        self.health = 200
+        self.player_in_range = False
+        self.world.push_handlers(self.on_region_entered)
+
+    def draw(self):
+        self.sprite.rotation = self.rotation
+        self.sprite.position = self.position
+        self.sprite.draw()
+
+    def update(self, ts):
+        self.position += self.velocity * ts
+        self.rotation += self.angular_velocity * ts
+
+        if self.player_in_range:
+            # make the droid madder as it gets shot
+            if self.health < 50:
+                freq = 0.3
+            elif self.health < 100:
+                freq = 0.15
+            elif self.health < 150:
+                freq = 0.1
+            else:
+                freq = 0.05
+            if random.random() < freq:
+                self.shoot()
+
+    def on_region_entered(self):
+        self.sprite = pyglet.sprite.Sprite(self.DROID_BERSERK)
+        self.player_in_range = True
+
+    def shoot(self):
+        rotation = math.radians(self.sprite.rotation)
+        dir = v(
+            math.sin(rotation),
+            math.cos(rotation)
+        ) * -1
+        # laser_sound.play()
+        Bullet(self.world, self.position + dir * 60, dir, self.velocity)
+
+    def shot(self):
+        self.health -= 10
+        if self.health <= 0:
+            self.explode()
+
+
 class Asteroid(Collidable):
     EJECT_SPEED = 50
     EJECT_RANDOMNESS = 30
@@ -608,7 +721,8 @@ CLASSES = [
     Satellite,
     SolarFarm,
     SpaceDock,
-    Battery
+    Battery,
+    Droid
 ]
 
 

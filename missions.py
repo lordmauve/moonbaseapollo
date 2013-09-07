@@ -511,16 +511,6 @@ m.player_must_collect('objects.Lugger')
 m.say('{control}: {lugger.name}, your callsign is now {name}.', delay=10)
 
 
-m = Mission('Collect metal')
-m.say("{control}: {name}, our fabrication facility is just about ready.")
-m.say("{control}: We want you to supply us with metal.")
-m.goal('Collect 4 metal')
-for pos in random_positions(3):
-    m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
-m.player_must_collect('objects.Metal', 4)
-m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
-
-
 TARGET_POS = v(3000, -3000)
 m = Mission('Launch Satellite')
 m.fail_if_object_destroyed('satellite')
@@ -545,6 +535,27 @@ m.spawn('objects.FrozenFood', v(-4500, 300), velocity=v(30, 0), signpost='Frozen
 m.fail_if_object_destroyed(id='food')
 m.player_must_collect('objects.FrozenFood')
 m.say('{control}: Delicious! They gave us a flake too!')
+
+
+DROID_POS = v(-2600, 3000)
+m = Mission('Destroy droid')
+m.say("{control}: {name}, our mining droid CP-9 has stopped responding. It might be malfunctioning.")
+m.say("{control}: It is armed and dangerous! Go and destroy it if need be.")
+m.spawn('objects.Droid', DROID_POS, signpost='DROID CP-9', id='droid')
+m.goal('Destroy a malfunctioning droid')
+m.player_must_enter_region(DROID_POS, 200)
+m.say("DROID CP-9: Enemy Approaching. ATTACK MODE ENABLED!", colour=RED)
+m.player_must_destroy('droid')
+m.say("{control}: Thanks, we will ask all our droids to be retested")
+
+m = Mission('Collect metal')
+m.say("{control}: {name}, our fabrication facility is just about ready.")
+m.say("{control}: We want you to supply us with metal.")
+m.goal('Collect 4 metal')
+for pos in random_positions(3):
+    m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
+m.player_must_collect('objects.Metal', 4)
+m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
 
 
 m = Mission('Restock water')

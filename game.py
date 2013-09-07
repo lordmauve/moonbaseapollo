@@ -20,7 +20,7 @@ from particles import  (
 
 from objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
-    Asteroid, Coin, Marker, SwappableShip
+    Asteroid, Coin, Marker, SwappableShip, Bullet
 )
 from background import Starfield
 from effects import Explosion
@@ -277,6 +277,9 @@ class Player(Collider):
         laser_sound.play()
         Bullet(self.world, self.position, dir, self.velocity)
 
+    def shot(self):
+        self.explode()
+
     def attach(self, other):
         if self.tethered:
             return
@@ -293,54 +296,6 @@ class Player(Collider):
             self.world.dispatch_event('on_object_released', self.tethered)
             self.tethered.tethered_to = None
             self.tethered = None
-
-
-class Bullet(Collider):
-    RADIUS = 3
-    SPEED = 200
-
-    COLGROUPS = 0x8
-    COLMASK = 0xfd
-
-    @classmethod
-    def load(cls):
-        if not hasattr(cls, 'BULLET'):
-            cls.BULLET = load_centred('bullet')
-
-    def __init__(self, world, pos, dir, initial_velocity=v(0, 0)):
-        self.world = world
-        self.position = pos
-        self.velocity = (dir * self.SPEED + initial_velocity)
-        self.sprite = pyglet.sprite.Sprite(Bullet.BULLET)
-        self.sprite.position = pos.x, pos.y
-        self.sprite.rotation = 90 - dir.angle
-        self.world.spawn(self)
-
-    def draw(self):
-        self.sprite.position = self.position
-        self.sprite.draw()
-
-    def update(self, ts):
-        self.position += self.velocity * ts
-        self.do_collisions()
-
-    def do_collisions(self):
-        for o in self.iter_collisions():
-            self.world.dispatch_event('on_object_shot', o)
-
-            if isinstance(o, Asteroid):
-                o.fragment(self.position)
-
-            if isinstance(o, (Asteroid, Moon)):
-                Explosion(self.world, self.position, particle_amount=10)
-            else:
-                Explosion(self.world, self.position)
-
-            self.kill()
-            break
-
-    def kill(self):
-        self.world.kill(self)
 
 
 class Camera(object):
@@ -590,6 +545,8 @@ class GameState(object):
         self.world.spawn_player()
         if self.world.player.alive:
             self.say("{control}: Please treat this ship more carefully!")
+        else:
+            self.mission = None
 
     def on_key_press(self, symbol, modifiers):
         if symbol == key.Z:

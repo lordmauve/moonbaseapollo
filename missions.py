@@ -547,7 +547,7 @@ m.player_must_release_in_region('satellite', TARGET_POS, 600)
 m.say("{control}: Excellent, {satellite.name} is coming online. Readings look good.")
 
 
-DROID_POS = v(-2600, 3000)
+DROID_POS = v(-2630, 3000)
 m = Mission('Destroy droid')
 m.say("{control}: {name}, our mining droid CP-9 has stopped responding.", delay=1)
 m.say("{control}: It is armed and dangerous! ", delay=3)

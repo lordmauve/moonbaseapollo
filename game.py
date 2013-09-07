@@ -1,4 +1,5 @@
 import math
+import os
 from collections import defaultdict
 from contextlib import contextmanager
 
@@ -53,6 +54,7 @@ RESPAWN_COST = 50
 # Money awarded for completing a mission
 MISSION_BONUS = 100
 
+MISSION_FILE = '.mission'
 
 laser_sound = pyglet.resource.media('laser.wav', streaming=False)
 pickup_sound = pyglet.resource.media('pickup.wav', streaming=False)
@@ -616,6 +618,8 @@ class GameState(object):
                 self.mission.start()
                 self.mission.set_handler('on_finish', self.on_mission_finish)
                 self.mission.set_handler('on_failure', self.on_failure)
+                with open(MISSION_FILE, 'w') as mf:
+                    mf.write(str(self.mission_number + 1))
 
     def on_mission_finish(self):
         self.say('Mission complete!', colour=GOLD)
@@ -687,6 +691,14 @@ class Game(object):
             self.game = GameState(self, mission)
         self.set_gamestate(self.game)
 
+    def resume_mission(self):
+        if os.path.exists(MISSION_FILE):
+            with open(MISSION_FILE) as mf:
+                mission = int(mf.read())
+        else:
+            mission = 1
+        self.start_mission(mission)
+
     def set_gamestate(self, gamestate):
         if self.gamestate:
             self.gamestate.stop()
@@ -719,6 +731,7 @@ class MenuState(object):
 
         self.actions = [
             ('New game', self.on_new_game),
+            ('Resume', self.on_resume),
             ('Quit', self.on_quit),
         ]
         self.selected = 0
@@ -729,6 +742,9 @@ class MenuState(object):
 
     def on_new_game(self):
         self.game.start_mission()
+
+    def on_resume(self):
+        self.game.resume_mission()
 
     def on_quit(self):
         pyglet.app.exit()

@@ -1,0 +1,4 @@
+https://pyglet.googlecode.com/files/pyglet-1.2alpha1.tar.gz
+https://bitbucket.org/lordmauve/wasabi-geom/get/b6cbf5b04c44.zip
+lepton/
+

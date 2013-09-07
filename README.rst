@@ -26,7 +26,7 @@ The main dependencies are:
  * Python 2.7 (required)
  * Pyglet v1.2alpha1 (required)
  * Wasabi.geom (required)
- * Lepton (recommended) - for explosions and special effects. Public version of lepton is buggy on 64-bit architectures. Use the fixed version included in our source package.
+ * Lepton (recommended) - for explosions and special effects. Public version of lepton is buggy on 64-bit architectures. Use the working version included in our source package.
  * AVBin (recommended) for playing music
 
 
@@ -51,6 +51,14 @@ Tractoring and Delivery:
 Some missions might require you to tractor an object to a destination. To start tractoring an object, move your ship over that object, and a tractor beam will pick it up automatically.
 
 To deliver a tractored item, move slowly close to the delivery point. Be careful not to crash, or accidentally kill your tractored object.
+
+Cheats:
+
+	F3			Skip to next mission
+	F4			Back to previous mission
+	F6			Select Cutter Ship
+	F7			Select Lugger Ship
+	F8			Select Clipper Ship
 
 
 LICENSE

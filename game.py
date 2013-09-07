@@ -574,6 +574,7 @@ class GameState(object):
     def on_player_death(self):
         # Wait a couple of seconds then respawn the player
         pyglet.clock.schedule_once(self.respawn, 2)
+        pyglet.clock.schedule_once(self.restart_mission, 2)
 
     def say(self, message, colour=CYAN):
         params = dict(
@@ -629,6 +630,11 @@ class GameState(object):
             self.restart_mission()
 
     def restart_mission(self, *args):
+        # In case this has been schedule more times
+        # eg. by player death and loss of critical object
+        pyglet.clock.unschedule(self.restart_mission)
+        # It's also possible we completed the mission and died
+        pyglet.clock.unschedule(self.next_mission)
         if self.mission:
             with log_exceptions():
                 self.mission.restart()

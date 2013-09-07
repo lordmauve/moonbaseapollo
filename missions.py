@@ -114,7 +114,7 @@ class Mission(Script):
                 self.on_object_shot, self.on_item_collected,
                 self.on_object_tractored, self.on_region_entered,
                 self.on_astronaut_death, self.on_object_destroyed,
-                self.on_object_released, self.on_player_death
+                self.on_object_released
             )
             self.handlers_installed = True
         self.hud = self.game.world.hud
@@ -395,10 +395,8 @@ class Mission(Script):
     def on_failure(self):
         self.game.say("{control}: Mission failed! Try again.", colour=RED)
 
-    def on_player_death(self):
-        self.restart()
-
     def finish(self):
+        pyglet.clock.unschedule(self.next)
         pyglet.clock.unschedule(self.next)
         pyglet.clock.unschedule(self.on_clock_tick)
         self.clear_items()
@@ -414,7 +412,7 @@ class Mission(Script):
         self.finish()
         self.clear_items(False)
 
-    def restart(self):
+    def restart(self, *args):
         """Rewind to the start of the mission and then start it afresh."""
         self.rewind()
         self.setup(self.game)  # reinstate handlers
@@ -431,13 +429,13 @@ Mission.register_event_type('on_failure')
 
 m = Mission('Diagnostics')
 m.say("{control}: Stand by {name}, we're going to run some diagnostics.", delay=6)
-m.spawn('objects.Marker', v(-300, 200), signpost='Waypoint', persistent=False)
 m.say("{control}: Let's take you out for a spin. Head towards this marker.", delay=0)
 m.goal('Move to the marker')
-m.say('Hold LEFT/RIGHT to rotate. Hold UP to thrust.', colour=WHITE)
+m.say('Hold LEFT/RIGHT to rotate. Hold UP to thrust.', colour=WHITE, delay=0)
+m.spawn('objects.Marker', v(-300, 200), signpost='Waypoint', persistent=False)
 m.player_must_collect('objects.Marker')
-m.spawn('objects.Marker', v(300, -200), signpost='Waypoint', persistent=False)
 m.say("{control}: And now this one.")
+m.spawn('objects.Marker', v(300, -200), signpost='Waypoint', persistent=False)
 m.player_must_collect('objects.Marker')
 m.say("{control}: {name}, your systems are looking good. You are mission ready!")
 
@@ -528,13 +526,13 @@ m = Mission('Launch Satellite')
 m.fail_if_object_destroyed('satellite')
 m.say("{control}: The metal you provided us has helped up build a satellite uplink.")
 m.spawn_above_moonbase('objects.Satellite', signpost=True, id='satellite', destination='nowhere')
-m.say("{control}: Please can you get it into place for us?")
+m.say("{control}: Please can you get it into place for us?", delay=0)
 m.goal('Pick up the satellite')
 m.player_must_tractor('satellite')
 m.say('{control}: We have picked out a spot where we would like you to set it up.', delay=0)
 m.spawn('objects.FixedMarker', TARGET_POS, signpost='Target Site', persistent=False, id='marker')
 m.player_must_enter_region(TARGET_POS, 300)
-m.say("{control}: Anywhere here looks fine.")
+m.say("{control}: Anywhere here looks fine.", delay=0)
 m.player_must_release_in_region('satellite', TARGET_POS, 600)
 #m.destroy('marker')
 m.say("{control}: Excellent, {satellite.name} is coming online. Readings look good.")

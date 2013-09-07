@@ -21,26 +21,27 @@ FAR_PLANE_SCALE = (FAR_PLANE + NEAR_PLANE) / NEAR_PLANE
 class Starfield(object):
     def __init__(self):
         self.batch = Batch()
+
+        self.starfield_block = StarfieldBlock(
+            rect=Rect.from_cwh(v(0, 0), BLOCK_SIZE, BLOCK_SIZE),
+            batch=self.batch
+        )
+
         self.blocks = {}
 
     def draw(self, camera):
-        self.build_blocks(camera)
-
         # set up projection matrix
         gl.glMatrixMode(gl.GL_PROJECTION)
         gl.glPushMatrix()
         gl.glLoadIdentity()
-        gl.glEnable(gl.GL_DEPTH_TEST)
         gl.gluPerspective(
             FOVY, camera.aspect(),
             NEAR_PLANE, FAR_PLANE
         )
-        self.batch.draw()
-        gl.glPopMatrix()
         gl.glMatrixMode(gl.GL_MODELVIEW)
-        gl.glDisable(gl.GL_DEPTH_TEST)
 
-    def build_blocks(self, camera):
+        gl.glEnable(gl.GL_DEPTH_TEST)
+
         # compute correct clip rect on far plane
         l, b = camera.position + camera.offset * FAR_PLANE_SCALE
         r, t = camera.position - camera.offset * FAR_PLANE_SCALE
@@ -53,12 +54,16 @@ class Starfield(object):
 
         for y in xrange(b, t):
             for x in xrange(l, r):
-                if (x, y) in self.blocks:
-                    continue
-                self.blocks[x, y] = StarfieldBlock(
-                    rect=Rect.from_blwh(v(x, y) * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE),
-                    batch=self.batch
-                )
+                c = v(x, y) * BLOCK_SIZE
+                gl.glPushMatrix()
+                gl.glTranslatef(c.x, c.y, 0)
+                self.batch.draw()
+                gl.glPopMatrix()
+
+        gl.glMatrixMode(gl.GL_PROJECTION)
+        gl.glPopMatrix()
+        gl.glMatrixMode(gl.GL_MODELVIEW)
+        gl.glDisable(gl.GL_DEPTH_TEST)
 
 
 class StarfieldBlock(object):

@@ -5,10 +5,10 @@ import pyglet.resource
 
 FONT_FILENAME = 'gun4fc.ttf'
 RESOURCE_DIRS = [
-    'sprites',
-    'fonts',
-    'data',
-    'sounds'
+    'assets/sprites',
+    'assets/fonts',
+    'assets/data',
+    'assets/sounds'
 ]
 
 
@@ -33,4 +33,4 @@ def make_centred(image):
 
 
 def load_centred(img):
-    return make_centred(pyglet.image.load('sprites/%s.png' % img))
+    return make_centred(pyglet.resource.image('%s.png' % img))

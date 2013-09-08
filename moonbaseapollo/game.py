@@ -12,24 +12,24 @@ from wasabi.geom.poly import Rect
 from wasabi.geom.spatialhash import SpatialHash
 
 # This has to be the first import, as it sets up the pyglet resource path
-from loader import load_centred
+from .loader import load_centred
 
-from particles import  (
+from .particles import  (
     StaticEmitter, domain, Particle, particle_system,
     exhaust_particles
 )
 
-from objects import (
+from .objects import (
     Collider, Moon, Collidable, Collectable, spawn_random_asteroids, load_all,
     Asteroid, Coin, Marker, SwappableShip, Bullet
 )
-from background import Starfield
-from effects import Explosion
-from labels import (
+from .background import Starfield
+from .effects import Explosion
+from .labels import (
     TrackingLabel, Signpost, GOLD, CYAN, money_label, RED, FONT_NAME, GREY, WHITE
 )
-from hud import HUD
-from ships import CUTTER, SHIPS
+from .hud import HUD
+from .ships import CUTTER, SHIPS
 
 
 # Change this before release!
@@ -800,7 +800,7 @@ class MenuState(object):
         self.batch.draw()
 
 
-if __name__ == '__main__':
+def main():
     from optparse import OptionParser
     parser = OptionParser('%prog [-f] [--mission <num>]')
     parser.add_option('-f', '--fullscreen', action='store_true', help='Start in full screen mode')
@@ -817,3 +817,7 @@ if __name__ == '__main__':
         game.start_menu()
 
     game.run()
+
+
+if __name__ == '__main__':
+    main()

@@ -1,6 +1,6 @@
 from collections import namedtuple
-from labels import GREEN, RED, YELLOW
-from loader import load_centred
+from .labels import GREEN, RED, YELLOW
+from .loader import load_centred
 
 
 ShipModel = namedtuple('ShipModel', 'name sprite rotation acceleration max_speed radius mass colour')

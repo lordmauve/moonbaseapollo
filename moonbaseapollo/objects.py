@@ -2,13 +2,13 @@
 import random
 import math
 import pyglet.sprite
-from loader import load_centred
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
 
-from effects import Explosion
-from labels import FloatyLabel, GOLD
-from ships import LUGGER, CUTTER
+from .loader import load_centred
+from .effects import Explosion
+from .labels import FloatyLabel, GOLD
+from .ships import LUGGER, CUTTER
 
 
 class Collider(object):

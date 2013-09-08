@@ -1,9 +1,9 @@
 import pyglet
 import pyglet.sprite
-from loader import load_centred
 from wasabi.geom import v
 
-from particles import StaticEmitter, explosion_particles, Particle, domain
+from .loader import load_centred
+from .particles import StaticEmitter, explosion_particles, Particle, domain
 
 
 explosion_sound = pyglet.resource.media('space-explosion.wav', streaming=False)

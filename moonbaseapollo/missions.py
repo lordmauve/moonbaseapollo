@@ -1,13 +1,15 @@
 import sys
 import random
+from weakref import WeakSet
 from contextlib import contextmanager
 from functools import wraps, partial
+
 from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
-from labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
-from weakref import WeakSet
-import hud
+
+from .labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
+from . import hud
 
 
 # If true, print the script steps as they are being run
@@ -432,11 +434,11 @@ m.say("{control}: Stand by {name}, we're going to run some diagnostics.", delay=
 m.say("{control}: Let's take you out for a spin. Head towards this marker.", delay=0)
 m.goal('Move to the marker')
 m.say('Hold LEFT/RIGHT to rotate. Hold UP to thrust.', colour=WHITE, delay=0)
-m.spawn('objects.Marker', v(-300, 200), signpost='Waypoint', persistent=False)
-m.player_must_collect('objects.Marker')
+m.spawn('moonbaseapollo.objects.Marker', v(-300, 200), signpost='Waypoint', persistent=False)
+m.player_must_collect('moonbaseapollo.objects.Marker')
 m.say("{control}: And now this one.")
-m.spawn('objects.Marker', v(300, -200), signpost='Waypoint', persistent=False)
-m.player_must_collect('objects.Marker')
+m.spawn('moonbaseapollo.objects.Marker', v(300, -200), signpost='Waypoint', persistent=False)
+m.player_must_collect('moonbaseapollo.objects.Marker')
 m.say("{control}: {name}, your systems are looking good. You are mission ready!")
 
 
@@ -445,20 +447,20 @@ m = Mission('Harvesting Ice')
 m.say("{control}: We are all very thirsty down here. Can you find us a source of water?", delay=1)
 m.say("You can harvest water from asteroids made of ice.", colour=WHITE, delay=2)
 m.goal("Collect some ice")
-m.spawn('objects.IceAsteroid', ICE_POS, signpost='Ice')
+m.spawn('moonbaseapollo.objects.IceAsteroid', ICE_POS, signpost='Ice')
 m.player_must_enter_region(ICE_POS, 400)
 m.say('Press Z to shoot the asteroid.', colour=WHITE, delay=0)
-m.say_if_object_shot('objects.IceAsteroid', 'Move your ship over an ice cube to grab it with your tractor beam.', colour=WHITE)
-m.say_if_object_shot('objects.Asteroid', 'Be careful! Shooting rocks will blast out dangerous rock fragments.', colour=WHITE)
-m.say_if_object_tractored('objects.Ice', 'Great! Now take this back to the moon base.', colour=WHITE)
+m.say_if_object_shot('moonbaseapollo.objects.IceAsteroid', 'Move your ship over an ice cube to grab it with your tractor beam.', colour=WHITE)
+m.say_if_object_shot('moonbaseapollo.objects.Asteroid', 'Be careful! Shooting rocks will blast out dangerous rock fragments.', colour=WHITE)
+m.say_if_object_tractored('moonbaseapollo.objects.Ice', 'Great! Now take this back to the moon base.', colour=WHITE)
 m.say_if_region_entered(v(0, 0), 400, 'Dropping off cargo is best done very slowly and carefully. Press Z to release.', colour=WHITE)
-m.player_must_collect('objects.Ice')
+m.player_must_collect('moonbaseapollo.objects.Ice')
 m.say("{control}: Delicious, anid ice cold too!")
 
 
 CHEESE_POS = v(-1000, 800)
 m = Mission('Collect some cheese!')
-m.spawn('objects.CheeseAsteroid', CHEESE_POS, signpost='Anomaly')
+m.spawn('moonbaseapollo.objects.CheeseAsteroid', CHEESE_POS, signpost='Anomaly')
 m.say("{control}: {name}, our scans are picking up an anomalistic scent.", delay=1)
 m.say("{control}: Please can you investigate and bring us back a sample?", delay=2)
 m.goal("Investigate Strange Whiff")
@@ -466,30 +468,30 @@ m.player_must_enter_region(CHEESE_POS, 300)
 m.say("{control}: Cheese! Well I never!")
 m.say("{control}: We need enough for lunch.", delay=0)
 m.goal("Collect 2 cheeses")
-m.player_must_collect('objects.Cheese', 2)
+m.player_must_collect('moonbaseapollo.objects.Cheese', 2)
 
 
 STATION_POS = v(700, 4600)
 def respawn_comm_station(m):
-    m.spawn('objects.CommsStation', STATION_POS, signpost=True, id='comm-station-4', persistent=True)
+    m.spawn('moonbaseapollo.objects.CommsStation', STATION_POS, signpost=True, id='comm-station-4', persistent=True)
 
 m = Mission('Transport the astronaut')
 m.say("{control}: Return to base, {name}, for your next mission.", delay=0)
 m.player_must_enter_region(v(0, 0), 500)
-m.spawn_above_moonbase('objects.Astronaut', id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
+m.spawn_above_moonbase('moonbaseapollo.objects.Astronaut', id='astronaut', signpost=True, persistent=False, destination='comm-station-4')
 m.say("{control}: This is {astronaut.name}.", delay=2)
 respawn_comm_station(m)
 m.say("{control}: {name}, please take {astronaut.name} to Comm Station 4.", delay=3)
 m.goal('Transport {astronaut.name} to Comm Station 4')
-m.say_if_object_tractored('objects.Astronaut', '{astronaut.name}: Fly safely, please?')
+m.say_if_object_tractored('moonbaseapollo.objects.Astronaut', '{astronaut.name}: Fly safely, please?')
 m.fail_if_object_destroyed(id='astronaut')
-m.player_must_collect('objects.Astronaut')
+m.player_must_collect('moonbaseapollo.objects.Astronaut')
 m.say("{astronaut.name}: Thanks. I'm just going to go be sick now.")
 
 
 m = Mission('Defend the station')
 respawn_comm_station(m)
-m.spawn('objects.DangerousAsteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
+m.spawn('moonbaseapollo.objects.DangerousAsteroid', STATION_POS + v(1000, 0), signpost='Asteroid', velocity=v(-20, 0), id='asteroid')
 m.say('{control}: Emergency, {name}! An asteroid is heading for Comm Station 4', delay=1)
 m.goal('Destroy the asteroid')
 m.fail_if_object_destroyed('comm-station-4')
@@ -500,14 +502,14 @@ m.say('{control}: Thanks. Comm Station 4 is safe now.')
 SPACEDOCK_POS = v(-3000, 1600)
 m = Mission('Update ship')
 m.say("{control}: Good news, {name}!", delay=0)
-m.spawn('objects.SpaceDock', SPACEDOCK_POS)
+m.spawn('moonbaseapollo.objects.SpaceDock', SPACEDOCK_POS)
 m.fail_if_object_destroyed('lugger')
-m.spawn('objects.Lugger', SPACEDOCK_POS + v(30, -35), signpost='Lugger 1', rotation=180, persistent=False, id='lugger')
+m.spawn('moonbaseapollo.objects.Lugger', SPACEDOCK_POS + v(30, -35), signpost='Lugger 1', rotation=180, persistent=False, id='lugger')
 m.say("{control}: A ship ugprade just arrived at space dock.", delay=1)
 m.say("{control}: Go get it then!", delay=2)
 m.goal('Collect new ship')
 m.say_if_region_entered(SPACEDOCK_POS, 300, 'Manouver {name} to dock with Lugger 1.', colour=WHITE)
-m.player_must_collect('objects.Lugger')
+m.player_must_collect('moonbaseapollo.objects.Lugger')
 m.say('{control}: {lugger.name}, your callsign is now {name}.', delay=10)
 
 
@@ -516,17 +518,17 @@ m.say("{control}: {name}, our fabrication facility is just about ready.", delay=
 m.say("{control}: We want you to supply us with metal.", delay=1)
 m.goal('Collect 4 metal')
 for pos in random_positions(3):
-    m.spawn('objects.MetalAsteroid', pos, signpost='Metal')
-m.player_must_collect('objects.Metal', 4)
+    m.spawn('moonbaseapollo.objects.MetalAsteroid', pos, signpost='Metal')
+m.player_must_collect('moonbaseapollo.objects.Metal', 4)
 m.say("{control}: Thank you, {name}, we're firing up the furnaces.")
 
 
 m = Mission('Retrieve supply drop')
 m.say('{control}: {name}, we are expecting a resupply of frozen food from Earth.', delay=1.5)
 m.say('{control}: We need you to collect it and guide it through the asteroid belt.')
-m.spawn('objects.FrozenFood', v(-4500, 300), velocity=v(30, 0), signpost='Frozen Food Supplies', id='food')
+m.spawn('moonbaseapollo.objects.FrozenFood', v(-4500, 300), velocity=v(30, 0), signpost='Frozen Food Supplies', id='food')
 m.fail_if_object_destroyed(id='food')
-m.player_must_collect('objects.FrozenFood')
+m.player_must_collect('moonbaseapollo.objects.FrozenFood')
 m.say('{control}: Delicious! They gave us a flake too!')
 
 
@@ -534,12 +536,12 @@ TARGET_POS = v(3000, -3000)
 m = Mission('Launch Satellite')
 m.fail_if_object_destroyed('satellite')
 m.say("{control}: The metal you provided us has helped up build a satellite uplink.", delay=1)
-m.spawn_above_moonbase('objects.Satellite', signpost=True, id='satellite', destination='nowhere')
+m.spawn_above_moonbase('moonbaseapollo.objects.Satellite', signpost=True, id='satellite', destination='nowhere')
 m.say("{control}: Please can you get it into place for us?", delay=2)
 m.goal('Pick up the satellite')
 m.player_must_tractor('satellite')
 m.say('{control}: We have picked out a spot where we would like you to set it up.', delay=1)
-m.spawn('objects.FixedMarker', TARGET_POS, signpost='Target Site', persistent=False, id='marker')
+m.spawn('moonbaseapollo.objects.FixedMarker', TARGET_POS, signpost='Target Site', persistent=False, id='marker')
 m.player_must_enter_region(TARGET_POS, 300)
 m.say("{control}: Anywhere here looks fine.", delay=0)
 m.player_must_release_in_region('satellite', TARGET_POS, 600)
@@ -551,7 +553,7 @@ DROID_POS = v(-2630, 3000)
 m = Mission('Destroy droid')
 m.say("{control}: {name}, our mining droid CP-9 has stopped responding.", delay=1)
 m.say("{control}: It is armed and dangerous! ", delay=3)
-m.spawn('objects.Droid', DROID_POS, signpost='DROID CP-9', id='droid')
+m.spawn('moonbaseapollo.objects.Droid', DROID_POS, signpost='DROID CP-9', id='droid')
 m.goal('Destroy a malfunctioning droid')
 m.player_must_enter_region(DROID_POS, 200)
 m.say("DROID CP-9: Enemy Approaching. ATTACK MODE ENABLED!", colour=RED, delay=1)
@@ -564,10 +566,10 @@ m = Mission('Restock water')
 m.say('{control}: Emergency {name}, our water reclamator has sprung a leak!', delay=1)
 m.say('{control}: We need you to restock our water tanks before our plants die!', delay=2)
 for p in random_positions(4):
-    m.spawn('objects.IceAsteroid', p, signpost='Ice')
+    m.spawn('moonbaseapollo.objects.IceAsteroid', p, signpost='Ice')
 m.goal('Collect 6 Ice in 5 minutes')
 with m.time_limit(300):
-    m.player_must_collect('objects.Ice', 6)
+    m.player_must_collect('moonbaseapollo.objects.Ice', 6)
 m.say('{control}: Thanks, {name}. We think we have the leak under control now.')
 
 
@@ -576,14 +578,14 @@ BATTERY = SOLAR_FARM + v(0, 65)
 m = Mission("Collect battery from Solar Farm")
 m.say("{control}: {name}, the base is running out of power.", delay=1)
 m.say("{control}: Can you bring a battery pack from the Solar Farm?", delay=2)
-m.spawn('objects.SolarFarm', SOLAR_FARM, signpost='Solar Farm')
+m.spawn('moonbaseapollo.objects.SolarFarm', SOLAR_FARM, signpost='Solar Farm')
 m.goal("Collect battery pack")
 m.player_must_enter_region(SOLAR_FARM, 200)
 m.say("Solar Farm: Ahoy, {name}!", delay=0)
 m.say("Solar Farm: One battery pack, full of juice!", delay=1)
-m.spawn("objects.Battery", BATTERY, destination='moonbase', persistent=False)
-m.say_if_object_tractored('objects.Battery', "Return battery pack to {control}", colour=GREEN)
-m.player_must_collect('objects.Battery')
+m.spawn("moonbaseapollo.objects.Battery", BATTERY, destination='moonbase', persistent=False)
+m.say_if_object_tractored('moonbaseapollo.objects.Battery', "Return battery pack to {control}", colour=GREEN)
+m.player_must_collect('moonbaseapollo.objects.Battery')
 m.say("{control}: Thanks, we could have all died without power!")
 
 
@@ -593,9 +595,9 @@ m.say('{control}: {name}, we need to collect resources quickly.', delay=0)
 m.say('{control}: Collect %d credits as soon as possible' % credits_needed,
       delay=1)
 asteroid_types = [
-    ('objects.IceAsteroid', 'Ice'),
-    ('objects.CheeseAsteroid', 'Cheese'),
-    ('objects.MetalAsteroid', 'Metal')
+    ('moonbaseapollo.objects.IceAsteroid', 'Ice'),
+    ('moonbaseapollo.objects.CheeseAsteroid', 'Cheese'),
+    ('moonbaseapollo.objects.MetalAsteroid', 'Metal')
 ]
 for p in random_positions(4):
     ast = random.choice(asteroid_types)
@@ -608,7 +610,7 @@ m.say('{control}: Thanks, {name}. We think we have enough resources stocked now.
 # Next mission (draft)
 #
 m = Mission('Rescue an astronaut')
-m.spawn('objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
+m.spawn('moonbaseapollo.objects.Astronaut', STATION_POS + v(500, 500), velocity=v(30, 30), destination='comm-station-4', signpost=True, id='astronaut')
 respawn_comm_station(m)
 m.say('Comm Station 4: We have an emergency situation here, {name}.', delay=1)
 m.fail_if_object_destroyed(id='astronaut')
@@ -621,15 +623,15 @@ m.show_signpost('comm-station-4')
 m.say('Comm Station 4: We have a sick bay here. Hurry!', delay=0)
 m.goal('Return {astronaut.name} to Comm Station 4')
 with m.time_limit(100):
-    m.player_must_collect('objects.Astronaut')
+    m.player_must_collect('moonbaseapollo.objects.Astronaut')
 m.say('Comm Station 4: Stand by, {name}.', delay=10)
 m.say("Comm Station 4: {astronaut.name} isn't breathing...", delay=0.5)
 m.say("Comm Station 4: We need you to fetch adrenaline from {control}, stat!")
-m.spawn_above_moonbase('objects.MedicalCrate', destination='comm-station-4', signpost="Medical crate", id='medicrate')
+m.spawn_above_moonbase('moonbaseapollo.objects.MedicalCrate', destination='comm-station-4', signpost="Medical crate", id='medicrate')
 m.fail_if_object_destroyed(id='medicrate')
 m.goal('Fetch medical supplies')
 with m.time_limit(180):
-    m.player_must_collect('objects.MedicalCrate')
+    m.player_must_collect('moonbaseapollo.objects.MedicalCrate')
 m.say('Comm Station 4: Thanks, {name}.', delay=1)
 m.say('Comm Station 4: Administering adrenaline.', delay=10)
 m.say('{astronaut.name}: *gasps*', delay=1)

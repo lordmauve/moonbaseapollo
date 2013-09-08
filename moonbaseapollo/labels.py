@@ -105,7 +105,7 @@ class Signpost(object):
     @classmethod
     def load(cls):
         if not hasattr(cls, 'pointers'):
-            ul = pyglet.image.load('sprites/pointer.png').get_texture()
+            ul = pyglet.resource.image('pointer.png').get_texture()
             ul.anchor_x = 0
             ul.anchor_y = ul.height
             cls.pointers = {

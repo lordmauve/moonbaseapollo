@@ -8,3 +8,5 @@ grabs/*
 concept/*.png
 lepton/build
 .mission
+build/*
+dist/*

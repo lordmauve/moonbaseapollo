@@ -1,0 +1,2 @@
+recursive-include moonbaseapollo/assets *
+include README.rst

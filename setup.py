@@ -21,7 +21,7 @@ data_files = data_files.items()
 
 setup(
     name='moonbaseapollo',
-    version='1.0.0',
+    version='1.0.1',
     packages=find_packages(),
     description="Moonbase Apollo",
     long_description=open('README.rst').read(),
@@ -30,7 +30,7 @@ setup(
     url='http://www.pyweek.org/e/wasabi-idli2/',
     install_requires=[
         'pyglet>=1.1.4',
-        'wasabi.geom>=0.1.1',
+        'wasabi.geom>=0.1.3',
         'lepton==1.0b2',
         'distribute>=0.6'
     ],

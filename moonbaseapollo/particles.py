@@ -9,7 +9,10 @@ try:
     from lepton import Particle
     import lepton
 except ImportError:
-    print "You don't have lepton installed... you won't see all our cool particle effects."""
+    print(
+        "You don't have lepton installed... "
+        "you won't see all our cool particle effects."
+    )
 
     class Mock(object):
         """Cheap and dirty mock class."""

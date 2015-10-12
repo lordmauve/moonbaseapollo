@@ -10,3 +10,4 @@ lepton/build
 .mission
 build/*
 dist/*
+venv/

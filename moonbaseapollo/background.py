@@ -5,6 +5,8 @@ from wasabi.geom import v
 from wasabi.geom.poly import Rect
 from pyglet.graphics import Batch
 
+from .six import range
+
 
 DEPTH = 10000
 BLOCK_SIZE = 5000
@@ -52,8 +54,8 @@ class Starfield(object):
         b = int(floor(b / BLOCK_SIZE))
         t = int(ceil(t / BLOCK_SIZE))
 
-        for y in xrange(b, t):
-            for x in xrange(l, r):
+        for y in range(b, t):
+            for x in range(l, r):
                 c = v(x, y) * BLOCK_SIZE
                 gl.glPushMatrix()
                 gl.glTranslatef(c.x, c.y, 0)
@@ -82,7 +84,7 @@ class StarfieldBlock(object):
 
         coords = []
         cols = []
-        for i in xrange(STARS_PER_BLOCK):
+        for i in range(STARS_PER_BLOCK):
             z = rng.random()
             coords.extend([
                 rng.random() * w + l,

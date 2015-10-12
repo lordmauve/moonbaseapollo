@@ -3,6 +3,8 @@ import math
 import pyglet
 from wasabi.geom import v
 
+from . import six
+
 
 FONT_NAME = 'Gunship Condensed'
 
@@ -126,7 +128,7 @@ class Signpost(object):
             color=colour + (255,)
         )
         self.load()
-        self.sprite = pyglet.sprite.Sprite(next(self.pointers.itervalues()))
+        self.sprite = pyglet.sprite.Sprite(next(iter(six.values(self.pointers))))
         self.sprite.color = colour[:3]
         self.world.spawn(self)
 

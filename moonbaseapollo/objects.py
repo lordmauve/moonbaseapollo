@@ -5,6 +5,7 @@ import pyglet.sprite
 from wasabi.geom import v
 from wasabi.geom.poly import Rect
 
+from .six import range, zip
 from .loader import load_centred
 from .effects import Explosion
 from .labels import FloatyLabel, GOLD
@@ -575,7 +576,7 @@ class Asteroid(Collidable):
 
     def __init__(self, world, position, velocity=v(0, 0), random=random):
         self.world = world
-        img, self.RADIUS = random.choice(zip(self.SPRITES, self.RADIUSES))
+        img, self.RADIUS = random.choice(list(zip(self.SPRITES, self.RADIUSES)))
         self.position = position
         self.velocity = velocity
         self.sprite = pyglet.sprite.Sprite(img)
@@ -685,7 +686,7 @@ class IceAsteroid(Asteroid):
 def spawn_random_asteroids(world, num):
     r = random.Random()
     r.seed(1)
-    for i in xrange(num):
+    for i in range(num):
         Asteroid.generate(world, random=r)
 
 

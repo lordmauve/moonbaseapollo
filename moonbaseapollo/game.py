@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import math
 import os
 from collections import defaultdict
@@ -579,13 +581,13 @@ class GameState(object):
             with log_exceptions():
                 self.mission.rewind()
         try:
-            import missions
+            from . import missions
             reload(missions)
         except Exception:
             import traceback
             traceback.print_exc()
         else:
-            print 'Missions reloaded'
+            print('Missions reloaded')
             self.restart_mission()
 
     def restart_mission(self, *args):
@@ -608,7 +610,7 @@ class GameState(object):
             # Gracefully handle exceptions loading missions
             # to allow for it to be reloaded
 
-            import missions
+            from . import missions
             try:
                 self.mission = missions.MISSIONS[self.mission_number]
             except IndexError:
@@ -632,7 +634,7 @@ class GameState(object):
 
     def next_mission(self, *args):
         self.mission_number += 1
-        print "Skipping to next mission"
+        print("Skipping to next mission")
         if self.mission:
             with log_exceptions():
                 self.mission.skip()
@@ -640,7 +642,7 @@ class GameState(object):
 
     def previous_mission(self, *args):
         self.mission_number = max(0, self.mission_number - 1)
-        print "Skipping to previous mission"
+        print("Skipping to previous mission")
         if self.mission:
             with log_exceptions():
                 self.mission.rewind()
@@ -682,6 +684,7 @@ class Game(object):
         self.menu = None
         self.gamestate = None
 
+        pyglet.clock.schedule(lambda *args: None)
         self.window.push_handlers(self.on_draw)
 
     def start_mission(self, mission=1):

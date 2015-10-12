@@ -3,7 +3,7 @@ import pyglet
 from pyglet import gl
 from pyglet.text import Label
 
-from labels import FONT_NAME, GOLD, CYAN, RED
+from .labels import FONT_NAME, GOLD, CYAN, RED
 
 
 # Set the default message colour

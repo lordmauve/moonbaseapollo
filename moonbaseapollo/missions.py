@@ -8,6 +8,7 @@ from wasabi.geom import v
 import pyglet.clock
 from pyglet.event import EventDispatcher
 
+from . import six
 from .labels import Signpost, TrackingLabel, GOLD, GREEN, WHITE, RED
 from . import hud
 
@@ -70,7 +71,7 @@ class Script(EventDispatcher):
         else:
             self.current += 1
             if DEBUG_MISSIONS:
-                print f.func.__name__, f.args[1:], f.keywords
+                print(f.func.__name__, f.args[1:], f.keywords)
             f()
 
     def skip(self):
@@ -193,7 +194,7 @@ class Mission(Script):
 
         inst = cls(self.game.world, position=position, **kwargs)
         if signpost:
-            if not isinstance(signpost, basestring):
+            if not isinstance(signpost, six.string_types):
                 signpost = inst.name
             signpost = Signpost(self.game.world, signpost, inst, GOLD)
             self.nonpersistent_items.add(signpost)

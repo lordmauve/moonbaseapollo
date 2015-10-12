@@ -15,7 +15,7 @@ RESOURCE_DIRS = [
 def relpath(p):
     """Get the absolute path of the relative path p."""
     basedir = os.path.dirname(__file__)
-    return os.path.abspath(os.path.join(basedir, d))
+    return os.path.abspath(os.path.join(basedir, p))
 
 
 # Set up pyglet resource loader
